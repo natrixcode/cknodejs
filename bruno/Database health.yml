@@ -1,0 +1,16 @@
+info:
+  name: Database health
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:3000/health/db
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

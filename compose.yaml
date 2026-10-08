@@ -1,0 +1,40 @@
+services:
+  server:
+    image: cknodejs-server:0.1.0
+    build: .
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?Create .env from .env.example}
+      PGUSER: ${POSTGRES_USER:?Create .env from .env.example}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Create .env from .env.example}
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    stop_grace_period: 15s
+
+  db:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Create .env from .env.example}
+      POSTGRES_USER: ${POSTGRES_USER:?Create .env from .env.example}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Create .env from .env.example}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Для офіційного образу PostgreSQL 18 дані монтуються сюди.
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    stop_grace_period: 30s
+
+volumes:
+  postgres_data:

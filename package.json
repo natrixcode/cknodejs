@@ -1,0 +1,19 @@
+{
+  "name": "cknodejs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Навчальний проєкт: Express і PostgreSQL через pg",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "check": "node --check src/server.js && node --check src/db.js"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "pg": "8.23.0"
+  }
+}
