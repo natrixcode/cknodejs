@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "check": "node --check src/server.js && node --check src/db.js"
+    "check": "node --check src/app.js && node --check src/server.js && node --check src/config/database.js"
   },
   "dependencies": {
     "express": "5.2.1",
