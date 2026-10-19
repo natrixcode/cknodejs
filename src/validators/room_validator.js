@@ -1,6 +1,6 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
-const roomSchema = z.object({
+export const roomSchema = z.object({
     name: z.string().trim().min(1).max(50),
     capacity: z.number().int().min(1).max(500),
     status: z.enum([
@@ -11,4 +11,4 @@ const roomSchema = z.object({
     ])
 });
 
-module.exports = roomSchema;
+

@@ -1,7 +1,7 @@
 
-const { z } = require('zod');
+import { z } from 'zod';
 
-const invoiceSchema = z.object({
+export const invoiceSchema = z.object({
     childId: z.number().int().positive(),
     periodStart: z.iso.date(),
     periodEnd: z.iso.date(),
@@ -18,4 +18,4 @@ const invoiceSchema = z.object({
     }
 );
 
-module.exports = invoiceSchema;
+

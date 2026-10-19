@@ -1,7 +1,7 @@
 
-const { z } = require('zod');
+import { z } from 'zod';
 
-const scheduleSchema = z.object({
+export const scheduleSchema = z.object({
     date: z.iso.date(),
     startTime: z.iso.time(),
     endTime: z.iso.time(),
@@ -17,4 +17,4 @@ const scheduleSchema = z.object({
     }
 );
 
-module.exports = scheduleSchema;
+

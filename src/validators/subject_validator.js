@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const subjectSchema = z.object({
+export const subjectSchema = z.object({
     name: z.string().trim().min(2).max(100),
     description: z.string().max(1000).optional(),
     employeeIds: z.array(
@@ -13,4 +12,3 @@ const subjectSchema = z.object({
         )
 });
 
-module.exports = subjectSchema;

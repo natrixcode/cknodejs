@@ -1,10 +1,16 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
-const authSchema = z.object({
+export const authSchema = z.object({
     email: z.email(),
     password: z.string().trim().min(8),
+    role: z.enum([
+        'admin',
+        'manager',
+        'parent',
+        'teacher'
+    ])
 });
 
-module.exports = authSchema;
+
     
     

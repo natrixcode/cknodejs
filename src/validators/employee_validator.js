@@ -1,7 +1,7 @@
 
-const { z } = require('zod');
+import { z } from 'zod';
 
-const employeeSchema = z.object({
+export const employeeSchema = z.object({
     firstName: z.string().trim().min(2).max(50),
     lastName: z.string().trim().min(2).max(50),
     email: z.email(),
@@ -13,10 +13,11 @@ const employeeSchema = z.object({
         'cook',
         'nurse',
         'accountant',
-        'other'
+        'manager',
+        'educator',
+        'teacher'
     ]),
     salary: z.number().finite().min(0).max(100000000),
     status: z.enum(['active', 'inactive', 'on_leave'])
 });
 
-module.exports = employeeSchema;

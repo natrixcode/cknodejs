@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const discountSchema = z.object({
+export const discountSchema = z.object({
     name: z.string().trim().min(2).max(100),
     type: z.enum(['fixed', 'percent']),
     value: z.number().finite().positive(),
@@ -29,4 +28,4 @@ const discountSchema = z.object({
     }
 );
 
-module.exports = discountSchema;
+

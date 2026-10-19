@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const tuitionSchema = z.object({
+export const tuitionSchema = z.object({
     amount: z.number().finite().min(0).max(100000000),
     currency: z.enum(['UAH', 'USD', 'EUR']),
     billingPeriod: z.enum([
@@ -20,4 +19,3 @@ const tuitionSchema = z.object({
     }
 );
 
-module.exports = tuitionSchema;

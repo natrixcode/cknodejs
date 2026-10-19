@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const reportSchema = z.object({
+export const reportSchema = z.object({
     startDate: z.iso.date(),
     endDate: z.iso.date(),
     type: z.enum([
@@ -30,4 +29,3 @@ const reportSchema = z.object({
     }
 );
 
-module.exports = reportSchema;

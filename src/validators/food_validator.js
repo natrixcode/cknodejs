@@ -1,7 +1,7 @@
 
-const { z } = require('zod');
+import { z } from 'zod';
 
-const foodSchema = z.object({
+export const foodSchema = z.object({
     name: z.string().trim().min(2).max(100),
     amount: z.number().finite().min(0).max(100000000),
     currency: z.enum(['UAH', 'USD', 'EUR']),
@@ -20,4 +20,3 @@ const foodSchema = z.object({
     }
 );
 
-module.exports = foodSchema;

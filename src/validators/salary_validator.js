@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const salarySchema = z.object({
+export const salarySchema = z.object({
     employeeId: z.number().int().positive(),
     periodStart: z.iso.date(),
     periodEnd: z.iso.date(),
@@ -27,4 +26,3 @@ const salarySchema = z.object({
     }
 );
 
-module.exports = salarySchema;

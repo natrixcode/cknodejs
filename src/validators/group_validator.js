@@ -1,16 +1,15 @@
-const { z } = require('zod');
-
-const groupSchema = z.object({
-    name: z.string().trim().min(2, 'Назва має містити мінімум 2 символи').max(50, 'Назва не може бути довшою за 50 символів'),
-    capacity: z.number().int().min(1, 'Місткість має бути не меншою за 1').max(100, 'Місткість не може перевищувати 100'),
-    minAge: z.number().int().min(0).max(100),
-    maxAge: z.number().int().min(0).max(100)
+import { z } from 'zod';
+export const groupSchema = z.object({
+  name: z.string().trim().min(1, 'Вкажіть назву групи'),
+  children_count: z.coerce.number().int()
+    .min(0)
+    .max(20, 'У групі не може бути більше 20 дітей'),
+  min_age: z.coerce.number().min(2).max(5),
+  max_age: z.coerce.number().min(2).max(5),
 }).refine(
-    data => data.minAge <= data.maxAge,
-    {
-        path: ['maxAge'],
-        error: 'Максимальний вік не може бути меншим за мінімальний'
-    }
+  (data) => data.min_age <= data.max_age,
+  {
+    message: 'Мінімальний вік не може перевищувати максимальний',
+    path: ['min_age'],
+  }
 );
-
-module.exports = groupSchema;

@@ -1,7 +1,7 @@
 
-const { z } = require('zod');
+import { z } from 'zod';
 
-const expenseSchema = z.object({
+export const expenseSchema = z.object({
     name: z.string().trim().min(2).max(150),
     amount: z.number().finite().positive().max(100000000),
     date: z.iso.date(),
@@ -19,4 +19,3 @@ const expenseSchema = z.object({
     currency: z.enum(['UAH', 'USD', 'EUR']).default('UAH')
 });
 
-module.exports = expenseSchema;

@@ -1,13 +1,11 @@
-const { z } = require('zod');
-
-const childSchema = z.object({
-    name: z.string().min(2),
-    surname: z.string().min(3),
-    birthday: z.data(),
-    id: z.number().positive().int()
+import { z } from 'zod';
+const birthdaySchema = z.iso.date();
+export const createChildSchema = z.object({
+  name: z.string().trim().min(1, 'Вкажіть ім’я'),
+  surname: z.string().trim().min(1, 'Вкажіть прізвище'),
+  birthday: birthdaySchema,
 });
-
-module.exports = childSchema;
-
-    
-    
+export const updateChildSchema = createChildSchema.partial();
+export const childIdSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});

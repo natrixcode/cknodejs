@@ -1,7 +1,6 @@
+import { z } from 'zod';
 
-const { z } = require('zod');
-
-const settingsSchema = z.object({
+export const settingsSchema = z.object({
     institutionName: z.string().trim().min(2).max(150),
     email: z.email(),
     phone: z.string().trim().min(7).max(20),
@@ -22,4 +21,3 @@ const settingsSchema = z.object({
     ).default({})
 });
 
-module.exports = settingsSchema;
