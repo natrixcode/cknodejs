@@ -1,31 +1,28 @@
+
 import { z } from 'zod';
 
-export const discountSchema = z.object({
-    name: z.string().trim().min(2).max(100),
-    type: z.enum(['fixed', 'percent']),
-    value: z.number().finite().positive(),
-    currency: z.enum(['UAH', 'USD', 'EUR']).optional(),
-    validFrom: z.iso.date(),
-    validTo: z.iso.date().nullable().optional(),
-    isActive: z.boolean().default(true)
+export const discountSchema = z.strictObject({
+  name: z.string().trim().min(2).max(100),
+
+  percentage: z.union([
+    z.literal(10),
+    z.literal(20),
+    z.literal(30),
+  ]),
+
+  description: z.string().nullable().optional(),
+
+  valid_from: z.iso.date(),
+
+  valid_to: z.iso.date().nullable().optional(),
+
+  is_active: z.boolean().default(true),
+
 }).refine(
-    data => data.type !== 'percent' || data.value <= 100,
-    {
-        path: ['value'],
-        error: 'Відсоток знижки не може перевищувати 100'
-    }
-).refine(
-    data => data.type !== 'fixed' || !!data.currency,
-    {
-        path: ['currency'],
-        error: 'Для фіксованої знижки необхідно вказати валюту'
-    }
-).refine(
-    data => !data.validTo || data.validFrom <= data.validTo,
-    {
-        path: ['validTo'],
-        error: 'Некоректний період дії знижки'
-    }
+  (data) => !data.valid_to ||
+    data.valid_from <= data.valid_to,
+  {
+    path: ['valid_to'],
+    message: 'Кінець періоду не може бути раніше початку',
+  },
 );
-
-
