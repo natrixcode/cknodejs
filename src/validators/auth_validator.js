@@ -1,16 +1,17 @@
+
 import { z } from 'zod';
 
-export const authSchema = z.object({
-    email: z.email(),
-    password: z.string().trim().min(8),
-    role: z.enum([
-        'admin',
-        'manager',
-        'parent',
-        'teacher'
-    ])
-});
+const passwordSchema = z.string()
+  .min(1, 'Вкажіть пароль');
 
+export const authSchema = z.union([
+  z.strictObject({
+    email: z.email().max(100),
+    password: passwordSchema,
+  }),
 
-    
-    
+  z.strictObject({
+    username: z.string().trim().min(1).max(50),
+    password: passwordSchema,
+  }),
+]);
