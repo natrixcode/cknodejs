@@ -6,6 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --chown=node:node src ./src
+COPY --chown=node:node database/migrations ./database/migrations
 
 USER node
 EXPOSE 3000
