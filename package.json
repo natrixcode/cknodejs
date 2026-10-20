@@ -7,14 +7,14 @@
   "engines": {
     "node": ">=24 <25"
   },
-  
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "check": "node scripts/check.js",
-    "test": "node --test"
+    "test": "node --test",
+    "db:migrate": "node src/database/migrate.js",
+    "test:db-migrations": "node --test tests/database/migrations.test.js"
   },
-  
   "dependencies": {
     "express": "5.2.1",
     "pg": "8.23.0",
