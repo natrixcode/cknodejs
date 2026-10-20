@@ -1,21 +1,26 @@
 
 import { z } from 'zod';
 
-export const invoiceSchema = z.object({
-    childId: z.number().int().positive(),
-    periodStart: z.iso.date(),
-    periodEnd: z.iso.date(),
-    parameters: z.record(
-        z.string(),
-        z.unknown()
-    ).default({}),
-    currency: z.enum(['UAH', 'USD', 'EUR']).default('UAH')
+export const invoiceSchema = z.strictObject({
+  child_id: z.number().int().positive(),
+
+  period_start: z.iso.date(),
+
+  period_end: z.iso.date(),
+
+  parameters: z.record(
+    z.string(), z.unknown()
+  ).default({}),
+
+  currency: z.enum([
+    'UAH', 'USD', 'EUR'
+  ]).default('UAH'),
+
 }).refine(
-    data => data.periodStart <= data.periodEnd,
-    {
-        path: ['periodEnd'],
-        error: 'Кінець періоду не може бути раніше його початку'
-    }
+  (data) => data.period_start <= data.period_end,
+  {
+    path: ['period_end'],
+    message:
+      'Кінець періоду не може бути раніше початку',
+  }
 );
-
-

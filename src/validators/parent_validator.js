@@ -1,12 +1,12 @@
+
 import { z } from 'zod';
 
-export const parentSchema = z.object({
-    name: z.string().min(2),
-    surname: z.string().min(3),
-    email: z.email(),
-    phone: z.string().min(7).max(10)
+export const parentSchema = z.strictObject({
+  first_name: z.string().trim().min(1).max(50),
+
+  last_name: z.string().trim().min(1).max(50),
+
+  email: z.email().max(100),
+
+  phone: z.string().trim().min(7).max(20),
 });
-
-
-    
-    

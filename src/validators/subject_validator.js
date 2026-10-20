@@ -1,14 +1,16 @@
+
 import { z } from 'zod';
 
-export const subjectSchema = z.object({
-    name: z.string().trim().min(2).max(100),
-    description: z.string().max(1000).optional(),
-    employeeIds: z.array(
-        z.number().int().positive()
-    ).min(1).max(100)
-        .refine(
-            ids => new Set(ids).size === ids.length,
-            { error: 'ID працівників не повинні повторюватися' }
-        )
+export const subjectSchema = z.strictObject({
+  name: z.string().trim().min(2).max(100),
+
+  description: z.string()
+    .max(1000).nullable().optional(),
 });
 
+export const assignEmployeeSubjectSchema =
+  z.strictObject({
+    employee_id: z.number().int().positive(),
+
+    subject_id: z.number().int().positive(),
+  });
