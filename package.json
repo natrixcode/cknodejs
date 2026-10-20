@@ -10,12 +10,14 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "check": "node --check src/app.js && node --check src/server.js && node --check src/config/database.js && node --check src/database/migrations.js && node --check src/database/migrate.js",
+    "check": "node scripts/check.js",
+    "test": "node --test",
     "db:migrate": "node src/database/migrate.js",
     "test:db-migrations": "node --test tests/database/migrations.test.js"
   },
   "dependencies": {
     "express": "5.2.1",
-    "pg": "8.23.0"
+    "pg": "8.23.0",
+    "zod": "^4.6.7"
   }
 }
