@@ -58,7 +58,10 @@ export async function updateGroup(req, res, next) {
 
 export async function updateGroupStatus(req, res, next) {
   try {
-    const result = await service.updateGroupStatus();
+    const result = await service.updateGroupStatus(
+      req.params.id,
+      req.body
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

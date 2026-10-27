@@ -21,6 +21,9 @@ import { validateBody } from '../middleware/validate.js';
 import { z } from 'zod';
 
 const router = Router();
+const groupStatusSchema = z.strictObject({
+  status: z.enum(['active', 'inactive'])
+});
 
 const addGroupChildSchema = z.strictObject({
   child_id: z.coerce.number().int().positive()
@@ -30,7 +33,11 @@ router.get('/', getGroups);
 router.get('/:id', getGroupById);
 router.post('/', validateBody(groupSchema), createGroup);
 router.patch('/:id', validateBody(groupSchema.partial()), updateGroup);
-router.patch('/:id/status', updateGroupStatus);
+router.patch(
+  '/:id/status',
+  validateBody(groupStatusSchema),
+  updateGroupStatus
+);
 
 router.get('/:id/children', getGroupChildren);
 router.post('/:id/children', validateBody(addGroupChildSchema), addGroupChild);
