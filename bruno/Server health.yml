@@ -5,7 +5,15 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/health
+  url: http://localhost:3000/api/v1/rooms
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Room Test 1",
+        "capacity": 20,
+        "status": "available"
+      }
   auth: inherit
 
 settings:

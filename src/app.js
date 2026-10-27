@@ -1,3 +1,7 @@
+import {
+  errorHandler
+} from './middleware/errorHandler.js';
+
 import express from 'express';
 
 import authRouter from './routes/auth_router.js';
@@ -45,5 +49,7 @@ app.use(`${API_PREFIX}/settings`, settingsRouter);
 app.use(`${API_PREFIX}/subjects`, subjectsRouter);
 app.use(`${API_PREFIX}/tuition`, tuitionRouter);
 app.use(`${API_PREFIX}/users`, usersRouter);
+
+app.use(errorHandler);
 
 export default app;

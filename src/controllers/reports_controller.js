@@ -28,9 +28,16 @@ export async function getProfitReport(req, res, next) {
   }
 }
 
-export async function getGroupsProfitReport(req, res, next) {
+export async function getGroupsProfitReport(
+  req,
+  res,
+  next
+) {
   try {
-    const result = await service.getGroupsProfitReport();
+    const result =
+      await service.getGroupsProfitReport(
+        res.locals.reportFilters
+      );
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -42,9 +49,17 @@ export async function getGroupsProfitReport(req, res, next) {
   }
 }
 
-export async function getGroupProfitReport(req, res, next) {
+export async function getGroupProfitReport(
+  req,
+  res,
+  next
+) {
   try {
-    const result = await service.getGroupProfitReport(req.params.groupId);
+    const result =
+      await service.getGroupProfitReport(
+        req.params.groupId,
+        res.locals.reportFilters
+      );
 
     if (result.noContent) {
       return res.sendStatus(result.status);
