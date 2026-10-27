@@ -1,17 +1,42 @@
-const express = require('express')
-const route = express.Router()
+import { Router } from 'express';
+import { z } from 'zod';
 
-route.get('/',SomeFunction)
-route.get('/:id',SomeFunction)
-route.post('/',SomeFunction)
-route.patch('/:id',SomeFunction)
-route.patch('/:id/status',SomeFunction)
-route.get('/:id/groups',SomeFunction)
-route.get('/:id/subjects',SomeFunction)
-route.put('/:id/subjects',SomeFunction)
-route.get('/:id/schedule',SomeFunction)
-route.get('/:id/salary',SomeFunction)
+import {
+  getEmployees,
+  getEmployeeById,
+  createEmployee,
+  updateEmployee,
+  updateEmployeeStatus,
+  getEmployeeGroups,
+  getEmployeeSubjects,
+  updateEmployeeSubjects,
+  getEmployeeSchedule,
+  getEmployeeSalary
+} from '../controllers/employees_controller.js';
 
+import { employeeSchema } from '../validators/employee_validator.js';
+import { validateBody } from '../middleware/validate.js';
 
+const router = Router();
 
-module.exports = route
+const statusSchema = z.strictObject({
+  status: z.enum(['active', 'inactive', 'on_leave'])
+});
+
+const subjectsSchema = z.strictObject({
+  subject_ids: z.array(z.coerce.number().int().positive())
+});
+
+router.get('/', getEmployees);
+router.get('/:id', getEmployeeById);
+router.post('/', validateBody(employeeSchema), createEmployee);
+router.patch('/:id', validateBody(employeeSchema.partial()), updateEmployee);
+router.patch('/:id/status', validateBody(statusSchema), updateEmployeeStatus);
+
+router.get('/:id/groups', getEmployeeGroups);
+router.get('/:id/subjects', getEmployeeSubjects);
+router.put('/:id/subjects', validateBody(subjectsSchema), updateEmployeeSubjects);
+router.get('/:id/schedule', getEmployeeSchedule);
+router.get('/:id/salary', getEmployeeSalary);
+
+export default router;
