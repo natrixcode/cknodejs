@@ -1,14 +1,34 @@
-const express = require('express')
-const route = express.Router()
+import { Router } from 'express';
+import { z } from 'zod';
 
-route.get('/',SomeFunction)
-route.get('/:id',SomeFunction)
-route.post('/',SomeFunction)
-route.patch('/:id',SomeFunction)
-route.get('/:id/schedule',SomeFunction)
-route.patch('/:id/status',SomeFunction)
+import {
+  getRooms,
+  getRoomById,
+  createRoom,
+  updateRoom,
+  getRoomSchedule,
+  updateRoomStatus
+} from '../controllers/rooms_controller.js';
 
+import { roomSchema } from '../validators/room_validator.js';
+import { validateBody } from '../middleware/validate.js';
 
+const router = Router();
 
+const roomStatusSchema = z.strictObject({
+  status: z.enum([
+    'available',
+    'occupied',
+    'maintenance',
+    'inactive'
+  ])
+});
 
-module.exports = route
+router.get('/', getRooms);
+router.get('/:id', getRoomById);
+router.post('/', validateBody(roomSchema), createRoom);
+router.patch('/:id', validateBody(roomSchema.partial()), updateRoom);
+router.get('/:id/schedule', getRoomSchedule);
+router.patch('/:id/status', validateBody(roomStatusSchema), updateRoomStatus);
+
+export default router;
