@@ -137,3 +137,64 @@ test('Malformed JSON returns 400', async () => {
     });
   }
 });
+test('Invalid teacher returns 400', async () => {
+  await checkError(
+    { code: 'P0001', message: 'KMS_INVALID_TEACHER' },
+    400,
+    'KMS_INVALID_TEACHER'
+  );
+});
+
+test('Missing meal rate returns safe 500', async () => {
+  await checkError(
+    { code: 'P0001', message: 'KMS_MEAL_RATE_NOT_FOUND' },
+    500,
+    'Відсутні необхідні налаштування системи'
+  );
+});
+
+test('Missing tuition rate returns safe 500', async () => {
+  await checkError(
+    { code: 'P0001', message: 'KMS_TUITION_RATE_NOT_FOUND' },
+    500,
+    'Відсутні необхідні налаштування системи'
+  );
+});
+
+test('Missing salary parameter returns safe 500', async () => {
+  await checkError(
+    { code: 'P0001', message: 'KMS_SALARY_PARAMETER_NOT_FOUND' },
+    500,
+    'Відсутні необхідні налаштування системи'
+  );
+});
+
+test('Missing salary rule returns safe 500', async () => {
+  await checkError(
+    { code: 'P0001', message: 'KMS_SALARY_RULE_NOT_DEFINED' },
+    500,
+    'Відсутні необхідні налаштування системи'
+  );
+});
+
+test('Already sent headers are delegated to next', () => {
+  let delegatedError;
+
+  const error = new Error('Test error');
+
+  const req = {};
+  const res = {
+    headersSent: true,
+    status() {
+      throw new Error('Response must not be modified');
+    }
+  };
+
+  const next = (receivedError) => {
+    delegatedError = receivedError;
+  };
+
+  errorHandler(error, req, res, next);
+
+  assert.equal(delegatedError, error);
+});
