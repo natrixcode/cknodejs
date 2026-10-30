@@ -60,8 +60,8 @@ router.get('/calculate', (req, res, next) => {
     });
   }
 
-  req.query = parsed.data;
-  next();
+  res.locals.tuitionCalculation = parsed.data;
+  return next();
 }, calculateTuition);
 
 export default router;
