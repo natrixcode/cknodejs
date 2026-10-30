@@ -58,7 +58,7 @@ export async function updateTuitionRate(req, res, next) {
 
 export async function calculateTuition(req, res, next) {
   try {
-    const result = await service.calculateTuition(req.query);
+    const result = await service.calculateTuition(res.locals.tuitionCalculation);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
