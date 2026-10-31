@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getExpenses,
   getExpenseById,
@@ -13,7 +13,7 @@ import { expenseSchema } from '../validators/expense_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const updateExpenseSchema = z.strictObject({
   name: z.string().trim().min(2).max(150).optional(),
   amount: z.number().positive().max(100000000).optional(),

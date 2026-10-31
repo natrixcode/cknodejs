@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getTuitionRates,
   getTuitionRateById,
@@ -13,7 +13,7 @@ import { tuitionSchema } from '../validators/tuition_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const updateTuitionSchema = z.strictObject({
   amount: z.number().min(0).max(100000000).optional(),
   currency: z.enum(['UAH', 'USD', 'EUR']).optional(),

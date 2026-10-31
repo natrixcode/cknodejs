@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getEmployees,
   getEmployeeById,
@@ -18,7 +18,7 @@ import { employeeSchema } from '../validators/employee_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const statusSchema = z.strictObject({
   status: z.enum(['active', 'inactive', 'on_leave'])
 });

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getParents,
   getParentById,
@@ -15,7 +15,7 @@ import { parentSchema } from '../validators/parent_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin', 'manager'));
 router.get('/', getParents);
 router.get('/:id', getParentById);
 router.post('/', validateBody(parentSchema), createParent);

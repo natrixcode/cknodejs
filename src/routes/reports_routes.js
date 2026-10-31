@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getFinanceReport,
   getProfitReport,
@@ -14,7 +14,7 @@ import {
 } from '../controllers/reports_controller.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const reportQuerySchema = z.strictObject({
   start_date: z.iso.date(),
   end_date: z.iso.date(),

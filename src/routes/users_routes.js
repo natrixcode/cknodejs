@@ -9,11 +9,17 @@ import {
   updateUserRole,
   updateUserStatus
 } from '../controllers/users_controller.js';
+import {
+  requireAuth,
+  requireRole
+} from '../middleware/auth.js';
 
 import { userSchema } from '../validators/users_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+router.use(requireAuth);
+router.use(requireRole('admin'));
 
 const updateUserSchema = z.strictObject({
   name: z.string().trim().min(2).max(100).optional(),

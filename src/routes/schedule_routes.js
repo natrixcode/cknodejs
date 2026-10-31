@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getSchedules,
   getScheduleById,
@@ -17,7 +17,7 @@ import { scheduleSchema } from '../validators/schedule_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin', 'manager'));
 const idSchema = z.union([
   z.number().int().positive().safe(),
   z.string().regex(/^[1-9]\d*$/)

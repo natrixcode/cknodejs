@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getSettings,
   getSettingByKey,
@@ -13,7 +13,7 @@ import { settingsSchema } from '../validators/settings_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const updateSettingSchema = z.strictObject({
   value: z.unknown()
 }).refine(

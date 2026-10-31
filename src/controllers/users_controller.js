@@ -58,7 +58,16 @@ export async function updateUser(req, res, next) {
 
 export async function updateUserRole(req, res, next) {
   try {
-    const result = await service.updateUserRole(req.params.id, req.body);
+    if (String(req.user.id) === String(req.params.id)) {
+      return res.status(403).json({
+        message: 'You cannot change your own role'
+      });
+    }
+
+    const result = await service.updateUserRole(
+      req.params.id,
+      req.body
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -69,10 +78,21 @@ export async function updateUserRole(req, res, next) {
     next(error);
   }
 }
-
 export async function updateUserStatus(req, res, next) {
   try {
-    const result = await service.updateUserStatus(req.params.id, req.body);
+    if (
+      String(req.user.id) === String(req.params.id) &&
+      req.body.status !== 'active'
+    ) {
+      return res.status(403).json({
+        message: 'You cannot deactivate your own account'
+      });
+    }
+
+    const result = await service.updateUserStatus(
+      req.params.id,
+      req.body
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

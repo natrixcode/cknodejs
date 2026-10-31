@@ -3,7 +3,7 @@ import {
 } from './middleware/errorHandler.js';
 
 import express from 'express';
-
+import { requireAuth } from './middleware/auth.js';
 import authRouter from './routes/auth_router.js';
 import childrenRouter from './routes/children_router.js';
 import discountsRouter from './routes/discounts.routes.js';
@@ -31,6 +31,7 @@ app.disable('x-powered-by');
 app.use(express.json());
 
 app.use(`${API_PREFIX}/auth`, authRouter);
+app.use(`${API_PREFIX}`, requireAuth);
 app.use(`${API_PREFIX}/children`, childrenRouter);
 app.use(`${API_PREFIX}/discounts`, discountsRouter);
 app.use(`${API_PREFIX}/employees`, employeesRouter);
