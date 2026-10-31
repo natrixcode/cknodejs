@@ -129,6 +129,23 @@ export async function getGroupEmployees(req, res, next) {
   }
 }
 
+export async function addGroupEmployee(req, res, next) {
+  try {
+    const result = await service.addGroupEmployee(
+      req.params.id,
+      req.body
+    );
+
+    if (result.noContent) {
+      return res.sendStatus(result.status);
+    }
+
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function removeGroupEmployee(req, res, next) {
   try {
     const result = await service.removeGroupEmployee(req.params.id, req.params.employeeId);
