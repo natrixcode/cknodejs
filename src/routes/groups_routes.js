@@ -10,6 +10,7 @@ import {
   addGroupChild,
   removeGroupChild,
   getGroupEmployees,
+  addGroupEmployee,
   removeGroupEmployee,
   getGroupSchedule,
   getGroupFinance,
@@ -29,6 +30,11 @@ const addGroupChildSchema = z.strictObject({
   child_id: z.coerce.number().int().positive()
 });
 
+const addGroupEmployeeSchema = z.strictObject({
+  employee_id: z.coerce.number().int().positive(),
+  role: z.enum(['educator', 'assistant'])
+});
+
 router.get('/', getGroups);
 router.get('/:id', getGroupById);
 router.post('/', validateBody(groupSchema), createGroup);
@@ -44,6 +50,11 @@ router.post('/:id/children', validateBody(addGroupChildSchema), addGroupChild);
 router.delete('/:id/children/:childId', removeGroupChild);
 
 router.get('/:id/employees', getGroupEmployees);
+router.post(
+  '/:id/employees',
+  validateBody(addGroupEmployeeSchema),
+  addGroupEmployee
+);
 router.delete('/:id/employees/:employeeId', removeGroupEmployee);
 
 router.get('/:id/schedule', getGroupSchedule);

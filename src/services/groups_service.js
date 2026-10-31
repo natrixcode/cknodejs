@@ -93,6 +93,16 @@ export async function getGroupEmployees(id) {
   );
 }
 
+export async function addGroupEmployee(id, data) {
+  return ok(
+    await one(
+      'SELECT * FROM kms_assign_employee_to_group($1, $2, $3)',
+      [id, data.employee_id, data.role]
+    ),
+    201
+  );
+}
+
 export async function removeGroupEmployee(
   id,
   employeeId
