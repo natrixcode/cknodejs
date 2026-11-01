@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
 import { requireParentAccess } from '../middleware/parentAccess.js';
+import { parentSchema } from '../validators/parent_validator.js';
 import {
   getParents,
   getParentById,
@@ -11,8 +12,9 @@ import {
   getParentInvoices,
   getParentPayments
 } from '../controllers/parents_controller.js';
-
-import { parentSchema } from '../validators/parent_validator.js';
+import {
+  parentContactSchema
+} from '../validators/parent_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
@@ -34,8 +36,15 @@ router.post(
 
 router.patch(
   '/:id',
-  requireRole('admin', 'manager'),
-  validateBody(parentSchema.partial()),
+  requireRole('admin', 'manager', 'parent'),
+  requireParentAccess,
+  (req, res, next) => {
+    const schema = req.user.role === 'parent'
+      ? parentContactSchema
+      : parentSchema.partial();
+
+    return validateBody(schema)(req, res, next);
+  },
   updateParent
 );
 

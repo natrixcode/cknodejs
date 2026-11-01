@@ -138,11 +138,27 @@ const [admin, firstParent, secondParent, manager] = users.rows;
   expected: 200
 },
 {
-  name: 'Parent A cannot update profile yet',
+  name: 'Parent A can update own phone',
   method: 'PATCH',
   path: `/parents/${parentA.rows[0].id}`,
   token: tokens[1],
   body: { phone: '+380990000999' },
+  expected: 200
+},
+{
+  name: 'Parent A cannot update own name',
+  method: 'PATCH',
+  path: `/parents/${parentA.rows[0].id}`,
+  token: tokens[1],
+  body: { first_name: 'Changed' },
+  expected: 400
+},
+{
+  name: 'Parent B cannot update Parent A',
+  method: 'PATCH',
+  path: `/parents/${parentA.rows[0].id}`,
+  token: tokens[2],
+  body: { phone: '+380990000888' },
   expected: 403
 },
       {
