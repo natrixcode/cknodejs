@@ -18,18 +18,18 @@ import { paymentSchema } from '../validators/payment_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-router.get('/', requireRole('admin'), getPayments);
+router.get('/', requireRole('admin', 'manager'), getPayments);
 
 router.get(
   '/:invoiceId/payments',
-  requireRole('admin', 'parent'),
+requireRole('admin', 'manager', 'parent'),
   requireInvoiceAccess,
   getInvoicePayments
 );
 
 router.get(
   '/:id',
-  requireRole('admin', 'parent'),
+  requireRole('admin', 'manager', 'parent'),
   requirePaymentAccess,
   getPaymentById
 );

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
+import { requireParentAccess } from '../middleware/parentAccess.js';
 import {
   getParents,
   getParentById,
@@ -15,15 +16,54 @@ import { parentSchema } from '../validators/parent_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-router.use(requireRole('admin', 'manager'));
-router.get('/', getParents);
-router.get('/:id', getParentById);
-router.post('/', validateBody(parentSchema), createParent);
-router.patch('/:id', validateBody(parentSchema.partial()), updateParent);
+router.get('/', requireRole('admin', 'manager'), getParents);
 
-router.get('/:id/children', getParentChildren);
-router.post('/:id/children', addParentChild);
-router.get('/:id/invoices', getParentInvoices);
-router.get('/:id/payments', getParentPayments);
+router.get(
+  '/:id',
+  requireRole('admin', 'manager', 'parent'),
+  requireParentAccess,
+  getParentById
+);
+
+router.post(
+  '/',
+  requireRole('admin', 'manager'),
+  validateBody(parentSchema),
+  createParent
+);
+
+router.patch(
+  '/:id',
+  requireRole('admin', 'manager'),
+  validateBody(parentSchema.partial()),
+  updateParent
+);
+
+router.get(
+  '/:id/children',
+  requireRole('admin', 'manager', 'parent'),
+  requireParentAccess,
+  getParentChildren
+);
+
+router.post(
+  '/:id/children',
+  requireRole('admin', 'manager'),
+  addParentChild
+);
+
+router.get(
+  '/:id/invoices',
+  requireRole('admin', 'manager', 'parent'),
+  requireParentAccess,
+  getParentInvoices
+);
+
+router.get(
+  '/:id/payments',
+  requireRole('admin', 'manager', 'parent'),
+  requireParentAccess,
+  getParentPayments
+);
 
 export default router;

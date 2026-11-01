@@ -52,13 +52,22 @@ test('Children API access control', {
       env,
       timeout: 60000
     });
-
+assert.match(result.stdout, /PASS: Parent A can view own profile/);
+assert.match(result.stdout, /PASS: Parent B cannot view Parent A profile/);
+assert.match(result.stdout, /PASS: Parent A can view own children/);
+assert.match(result.stdout, /PASS: Parent A can view own invoices/);
+assert.match(result.stdout, /PASS: Parent A can view own payments/);
+assert.match(result.stdout, /PASS: Parent A cannot update profile yet/);
     assert.match(result.stdout, /PASS: Admin can view child/);
     assert.match(result.stdout, /PASS: Manager can list invoices/);
     assert.match(result.stdout, /PASS: Manager can view invoice/);
     assert.match(result.stdout, /PASS: Manager can view invoice items/);
     assert.match(result.stdout, /PASS: Manager cannot create invoice/);
     assert.match(result.stdout, /PASS: Manager cannot cancel invoice/);
+    assert.match(result.stdout, /PASS: Manager can list payments/);
+    assert.match(result.stdout, /PASS: Manager can view payment/);
+assert.match(result.stdout, /PASS: Manager can view invoice payments/);
+assert.match(result.stdout, /PASS: Manager cannot create payment/);
     assert.match(result.stdout, /PASS: Parent A can view own child/);
     assert.match(result.stdout, /PASS: Parent B cannot view unrelated child/);
     assert.match(result.stdout, /PASS: Parent A cannot update child/);

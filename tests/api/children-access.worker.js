@@ -103,6 +103,49 @@ const [admin, firstParent, secondParent, manager] = users.rows;
 
     const cases = [
       {
+  name: 'Parent A can view own profile',
+  method: 'GET',
+  path: `/parents/${parentA.rows[0].id}`,
+  token: tokens[1],
+  expected: 200
+},
+{
+  name: 'Parent B cannot view Parent A profile',
+  method: 'GET',
+  path: `/parents/${parentA.rows[0].id}`,
+  token: tokens[2],
+  expected: 403
+},
+{
+  name: 'Parent A can view own children',
+  method: 'GET',
+  path: `/parents/${parentA.rows[0].id}/children`,
+  token: tokens[1],
+  expected: 200
+},
+{
+  name: 'Parent A can view own invoices',
+  method: 'GET',
+  path: `/parents/${parentA.rows[0].id}/invoices`,
+  token: tokens[1],
+  expected: 200
+},
+{
+  name: 'Parent A can view own payments',
+  method: 'GET',
+  path: `/parents/${parentA.rows[0].id}/payments`,
+  token: tokens[1],
+  expected: 200
+},
+{
+  name: 'Parent A cannot update profile yet',
+  method: 'PATCH',
+  path: `/parents/${parentA.rows[0].id}`,
+  token: tokens[1],
+  body: { phone: '+380990000999' },
+  expected: 403
+},
+      {
         name: 'Admin can view child',
         method: 'GET',
         path: `/children/${childId}`,
@@ -142,6 +185,35 @@ const [admin, firstParent, secondParent, manager] = users.rows;
   name: 'Manager cannot cancel invoice',
   method: 'POST',
   path: `/invoices/${invoiceId}/cancel`,
+  token: tokens[3],
+  body: {},
+  expected: 403
+},
+{
+  name: 'Manager can list payments',
+  method: 'GET',
+  path: '/payments',
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager can view payment',
+  method: 'GET',
+  path: `/payments/${paymentId}`,
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager can view invoice payments',
+  method: 'GET',
+  path: `/payments/${invoiceId}/payments`,
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager cannot create payment',
+  method: 'POST',
+  path: '/payments',
   token: tokens[3],
   body: {},
   expected: 403
