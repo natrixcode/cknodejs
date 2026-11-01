@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireRole } from '../middleware/auth.js';
+import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
 import {
   getSchedules,
   getScheduleById,
@@ -17,7 +18,7 @@ import { scheduleSchema } from '../validators/schedule_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-router.use(requireRole('admin', 'manager'));
+
 const idSchema = z.union([
   z.number().int().positive().safe(),
   z.string().regex(/^[1-9]\d*$/)
@@ -57,15 +58,58 @@ const publishScheduleSchema = z.strictObject({
   )
 });
 
-router.get('/', getSchedules);
 
-router.post('/generate', generateSchedule);
-router.post('/validate', validateBody(validateScheduleSchema), validateSchedule);
-router.post('/publish', validateBody(publishScheduleSchema), publishSchedule);
 
-router.get('/:id', getScheduleById);
-router.post('/', validateBody(scheduleSchema), createSchedule);
-router.patch('/:id', validateBody(schedulePatchSchema), updateSchedule);
-router.delete('/:id', deleteSchedule);
+router.get(
+  '/:id',
+  requireRole('admin', 'manager', 'teacher', 'employee', 'parent'),
+  requireScheduleAccess,
+  getScheduleById
+);
+router.get(
+  '/',
+  requireRole('admin', 'manager'),
+  getSchedules
+);
+
+router.post(
+  '/generate',
+  requireRole('admin', 'manager'),
+  generateSchedule
+);
+
+router.post(
+  '/validate',
+  requireRole('admin', 'manager'),
+  validateBody(validateScheduleSchema),
+  validateSchedule
+);
+
+router.post(
+  '/publish',
+  requireRole('admin'),
+  validateBody(publishScheduleSchema),
+  publishSchedule
+);
+
+router.post(
+  '/',
+  requireRole('admin', 'manager'),
+  validateBody(scheduleSchema),
+  createSchedule
+);
+
+router.patch(
+  '/:id',
+  requireRole('admin', 'manager'),
+  validateBody(schedulePatchSchema),
+  updateSchedule
+);
+
+router.delete(
+  '/:id',
+  requireRole('admin', 'manager'),
+  deleteSchedule
+);
 
 export default router;

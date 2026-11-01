@@ -542,6 +542,52 @@ test('Schedule SQL business logic', {
 
         assert.equal(await balanced(), true);
       });
+    });    await t.test('15. Reject update of published lesson', async () => {
+      await rollback(async () => {
+        const g = await group();
+        const teacher = await teacherWithSubject();
+
+        const result = await lesson({
+          ...g,
+          ...teacher,
+          status: 'published',
+        });
+
+        const scheduleId = result.rows[0].id;
+
+        await assert.rejects(
+          db.query(
+            `UPDATE schedule
+             SET start_time = start_time + INTERVAL '1 minute'
+             WHERE id = $1`,
+            [scheduleId]
+          ),
+          /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+        );
+      });
+    });
+
+    await t.test('16. Reject delete of published lesson', async () => {
+      await rollback(async () => {
+        const g = await group();
+        const teacher = await teacherWithSubject();
+
+        const result = await lesson({
+          ...g,
+          ...teacher,
+          status: 'published',
+        });
+
+        const scheduleId = result.rows[0].id;
+
+        await assert.rejects(
+          db.query(
+            'DELETE FROM schedule WHERE id = $1',
+            [scheduleId]
+          ),
+          /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+        );
+      });
     });
 
   } finally {
