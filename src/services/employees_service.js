@@ -13,10 +13,44 @@ const fields = [
   'status'
 ];
 
-export const getEmployees = () => list('employees');
+const employeePublicFields = `
+  id,
+  first_name,
+  last_name,
+  email,
+  phone,
+  position,
+  status
+`;
 
-export const getEmployeeById = id =>
-  byId('employees', id);
+export async function getEmployees(role) {
+  if (role === 'admin') {
+    return list('employees');
+  }
+
+  return ok(
+    await rows(`
+      SELECT ${employeePublicFields}
+      FROM employees
+      ORDER BY id
+    `)
+  );
+}
+
+export async function getEmployeeById(id, role) {
+  if (role === 'admin') {
+    return byId('employees', id);
+  }
+
+  const employee = await one(
+    `SELECT ${employeePublicFields}
+     FROM employees
+     WHERE id = $1`,
+    [id]
+  );
+
+  return employee ? ok(employee) : missing();
+}
 
 export const createEmployee = data =>
   create('employees', data, fields);

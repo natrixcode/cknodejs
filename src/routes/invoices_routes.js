@@ -18,18 +18,18 @@ import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
 
-router.get('/', requireRole('admin'), getInvoices);
+router.get('/', requireRole('admin', 'manager'), getInvoices);
 
 router.get(
   '/:id',
-  requireRole('admin', 'parent'),
+ requireRole('admin', 'manager', 'parent'),
   requireInvoiceAccess,
   getInvoiceById
 );
 
 router.get(
   '/:id/items',
-  requireRole('admin', 'parent'),
+  requireRole('admin', 'manager', 'parent'),
   requireInvoiceAccess,
   getInvoiceItems
 );

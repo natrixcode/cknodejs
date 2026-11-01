@@ -42,17 +42,18 @@ async function main() {
   );
 
   const users = await pool.query(
-    `INSERT INTO users
-       (username, password_hash, role, parent_id)
-     VALUES
-       ('access_admin', 'test-hash', 'admin', NULL),
-       ('access_parent_a', 'test-hash', 'parent', $1),
-       ('access_parent_b', 'test-hash', 'parent', $2)
-     RETURNING id, role`,
-    [parentA.rows[0].id, parentB.rows[0].id]
-  );
+  `INSERT INTO users
+     (username, password_hash, role, parent_id)
+   VALUES
+     ('access_admin', 'test-hash', 'admin', NULL),
+     ('access_parent_a', 'test-hash', 'parent', $1),
+     ('access_parent_b', 'test-hash', 'parent', $2),
+     ('access_manager', 'test-hash', 'manager', NULL)
+   RETURNING id, role`,
+  [parentA.rows[0].id, parentB.rows[0].id]
+);
 
-  const [admin, firstParent, secondParent] = users.rows;
+const [admin, firstParent, secondParent, manager] = users.rows;
 
   // Create invoice and payment through SQL business functions.
   const invoiceResult = await pool.query(
@@ -72,10 +73,11 @@ async function main() {
   const paymentId = paymentResult.rows[0].id;
 
   const tokens = [
-    createSession(admin.id).token,
-    createSession(firstParent.id).token,
-    createSession(secondParent.id).token
-  ];
+  createSession(admin.id).token,
+  createSession(firstParent.id).token,
+  createSession(secondParent.id).token,
+  createSession(manager.id).token
+];
 
   const server = app.listen(0, '127.0.0.1');
 
@@ -107,6 +109,43 @@ async function main() {
         token: tokens[0],
         expected: 200
       },
+      {
+  name: 'Manager can list invoices',
+  method: 'GET',
+  path: '/invoices',
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager can view invoice',
+  method: 'GET',
+  path: `/invoices/${invoiceId}`,
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager can view invoice items',
+  method: 'GET',
+  path: `/invoices/${invoiceId}/items`,
+  token: tokens[3],
+  expected: 200
+},
+{
+  name: 'Manager cannot create invoice',
+  method: 'POST',
+  path: '/invoices',
+  token: tokens[3],
+  body: {},
+  expected: 403
+},
+{
+  name: 'Manager cannot cancel invoice',
+  method: 'POST',
+  path: `/invoices/${invoiceId}/cancel`,
+  token: tokens[3],
+  body: {},
+  expected: 403
+},
       {
         name: 'Parent A can view own child',
         method: 'GET',
