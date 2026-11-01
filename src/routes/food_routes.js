@@ -45,10 +45,7 @@ router.get('/calculate', (req, res, next) => {
   }
 
   res.locals.foodCalculation = parsed.data;
-  next();
-}, (req, res, next) => {
-  req.query = res.locals.foodCalculation;
-  return calculateFoodCost(req, res, next);
-});
+  return next();
+}, calculateFoodCost);
 
 export default router;
