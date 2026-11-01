@@ -33,15 +33,17 @@ export function errorHandler(error, req, res, next) {
     status = 409;
     message = 'Конфлікт з наявними даними';
   } else if (isBusinessError) {
-    status = error.message.endsWith('_NOT_FOUND')
-      ? 404
-      : error.message.includes('INVALID')
-        ? 400
-        : 409;
+  status = error.message.endsWith('_NOT_FOUND')
+    ? 404
+    : (
+        error.message.includes('INVALID') ||
+        error.message === 'KMS_CHILD_AGE_OUT_OF_RANGE'
+      )
+      ? 400
+      : 409;
 
-    message = error.message;
-  }
-
+  message = error.message;
+}
   if (status === 500) {
     console.error('Unhandled server error:', error);
   }
