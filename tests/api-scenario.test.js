@@ -339,7 +339,7 @@ test(
           { child_id: Number(olderChild.id) },
         );
 
-        assert.equal(response.status, 409);
+        assert.equal(response.status, 400);
 
         const details = await request("GET", `/children/${olderChild.id}`);
 
@@ -371,7 +371,7 @@ test(
           max_capacity: 2,
         });
 
-        assert.equal(response.status, 409, JSON.stringify(response.body));
+        assert.equal(response.status, 400, JSON.stringify(response.body));
       });
 
       const smallGroup = await createRecord("/groups", {
