@@ -1,0 +1,23 @@
+info:
+  name: Assign employee
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/groups/1/employees
+  body:
+    type: json
+    data: |-
+      {
+        "employee_id": 1,
+        "role": "educator"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
