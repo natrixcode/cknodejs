@@ -204,10 +204,10 @@ async function main() {
       'manager'
     ),
     teacher: await user(
-      'schedule_access_teacher',
-      'teacher',
-      null,
-      firstTeacher.teacherId
+    'schedule_access_teacher',
+    'employee',
+    null,
+    firstTeacher.teacherId
     ),
     educator: await user(
       'schedule_access_educator',

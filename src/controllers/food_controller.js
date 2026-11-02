@@ -44,7 +44,9 @@ export async function updateFoodRate(req, res, next) {
 
 export async function calculateFoodCost(req, res, next) {
   try {
-    const result = await service.calculateFoodCost(req.query);
+    const result = await service.calculateFoodCost(
+      res.locals.foodCalculation
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

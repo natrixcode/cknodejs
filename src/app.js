@@ -1,6 +1,4 @@
-import {
-  errorHandler
-} from './middleware/errorHandler.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 import express from 'express';
 import { requireAuth } from './middleware/auth.js';
