@@ -1,3 +1,4 @@
+
 CREATE OR REPLACE FUNCTION kms_can_view_schedule(
     p_user_id BIGINT,
     p_schedule_id BIGINT
@@ -17,9 +18,9 @@ AS $$
               -- Admin and Manager can view all schedules
               u.role IN ('admin', 'manager')
 
-              -- Teacher can view assigned lessons
+              -- Employee with teacher position can view assigned lessons
               OR (
-                  u.role = 'teacher'
+                  u.role = 'employee'
                   AND EXISTS (
                       SELECT 1
                       FROM employees e

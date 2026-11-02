@@ -589,7 +589,52 @@ test('Schedule SQL business logic', {
         );
       });
     });
+      await t.test('17. Employee teacher can view only assigned lessons', async () => {
+      await rollback(async () => {
+        const g = await group(false);
+        const ownTeacher = await teacherWithSubject();
+        const otherTeacher = await teacherWithSubject();
 
+        const ownLesson = await lesson({
+          ...g,
+          ...ownTeacher,
+        });
+
+        const otherLesson = await lesson({
+          ...g,
+          ...otherTeacher,
+          start: '12:00',
+          end: '13:00',
+        });
+
+        const userResult = await db.query(
+          `INSERT INTO users
+             (username, password_hash, role, employee_id)
+           VALUES ($1, $2, 'employee', $3)
+           RETURNING id`,
+          [
+            `schedule_teacher_${++counter}`,
+            'test-only-password-hash',
+            ownTeacher.teacherId,
+          ]
+        );
+
+        const userId = userResult.rows[0].id;
+
+        const ownAccess = await db.query(
+          `SELECT kms_can_view_schedule($1, $2) AS allowed`,
+          [userId, ownLesson.rows[0].id]
+        );
+
+        const otherAccess = await db.query(
+          `SELECT kms_can_view_schedule($1, $2) AS allowed`,
+          [userId, otherLesson.rows[0].id]
+        );
+
+        assert.equal(ownAccess.rows[0].allowed, true);
+        assert.equal(otherAccess.rows[0].allowed, false);
+      });
+    });
   } finally {
     try {
       await db?.end();
