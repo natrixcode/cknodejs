@@ -1,3 +1,4 @@
+
 import {
   ok, fail, missing, unsupported,
   list, byId, patch, rows, one, transaction
@@ -9,8 +10,7 @@ const fields = [
   'teacher_id',
   'room_id',
   'start_time',
-  'end_time',
-  'status'
+  'end_time'
 ];
 
 export const getSchedules = () =>
@@ -45,13 +45,10 @@ export async function createSchedule(data) {
 }
 
 export async function updateSchedule(id, data) {
-  if (
-    Object.hasOwn(data, 'status') &&
-    data.status === 'published'
-  ) {
+  if (Object.hasOwn(data, 'status')) {
     return fail(
       422,
-      'Публікація дозволена тільки через /publish'
+      'Статус заняття змінюється тільки через /publish'
     );
   }
 
@@ -148,9 +145,9 @@ export async function publishSchedule(data) {
     for (const { groupId, day } of days.values()) {
       const result = await one(
         `SELECT kms_publish_group_day(
-          $1, $2
+          $1, $2, $3::time
         ) AS count`,
-        [groupId, day],
+        [groupId, day, data.day_start ?? '08:00'],
         db
       );
 
