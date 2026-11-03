@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import { Client } from 'pg';
+import { createSession } from '../src/utils/sessions.js';
 
 const execFileAsync = promisify(execFile);
 const migrate = fileURLToPath(
@@ -52,11 +53,22 @@ test('Group employees HTTP API', {
     await once(server, 'listening');
 
     const baseUrl = `http://127.0.0.1:${server.address().port}/api/v1`;
+    const adminUser = await pool.query(
+    `INSERT INTO users (username, password_hash, role)
+     VALUES ($1, $2, $3)
+     RETURNING id`,
+    [`groups_admin_${randomUUID().slice(0, 8)}`, 'test-hash', 'admin']
+   );
+
+const adminToken = createSession(adminUser.rows[0].id).token;
 
     async function request(method, path, body) {
       const response = await fetch(`${baseUrl}${path}`, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+        'Content-Type': 'application/json',
+         Authorization: `Bearer ${adminToken}`
+        },
         ...(body === undefined ? {} : {
           body: JSON.stringify(body)
         })

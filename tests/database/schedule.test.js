@@ -572,53 +572,69 @@ test('Schedule SQL business logic', {
 
         assert.equal(await balanced(), true);
       });
-    });    await t.test('15. Reject update of published lesson', async () => {
-      await rollback(async () => {
-        const g = await group();
-        const teacher = await teacherWithSubject();
+    });
+await t.test('15. Reject update of published lesson', async () => {
+  await rollback(async () => {
+    const g = await group();
+    const teacher = await teacherWithSubject();
 
-        const result = await lesson({
-          ...g,
-          ...teacher,
-          status: 'published',
-        });
+    // Спочатку готуємо повний день.
+    await prepareDay(g.groupId);
 
-        const scheduleId = result.rows[0].id;
-
-        await assert.rejects(
-          db.query(
-            `UPDATE schedule
-             SET start_time = start_time + INTERVAL '1 minute'
-             WHERE id = $1`,
-            [scheduleId]
-          ),
-          /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
-        );
-      });
+    // Створюємо заняття у статусі draft.
+    const result = await lesson({
+      ...g,
+      ...teacher,
     });
 
-    await t.test('16. Reject delete of published lesson', async () => {
-      await rollback(async () => {
-        const g = await group();
-        const teacher = await teacherWithSubject();
+    const scheduleId = result.rows[0].id;
 
-        const result = await lesson({
-          ...g,
-          ...teacher,
-          status: 'published',
-        });
+    // Публікуємо день через SQL-функцію.
+    await publishDay(g.groupId);
 
-        const scheduleId = result.rows[0].id;
+    // Перевіряємо заборону зміни опублікованого заняття.
+    await assert.rejects(
+      db.query(
+        `UPDATE schedule
+         SET start_time = start_time + INTERVAL '1 minute'
+         WHERE id = $1`,
+        [scheduleId]
+      ),
+      /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+    );
+  });
+});
 
-        await assert.rejects(
-          db.query(
-            'DELETE FROM schedule WHERE id = $1',
-            [scheduleId]
-          ),
-          /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
-        );
-      });
+await t.test('16. Reject delete of published lesson', async () => {
+  await rollback(async () => {
+    const g = await group();
+    const teacher = await teacherWithSubject();
+
+    // Готуємо повний день.
+    await prepareDay(g.groupId);
+
+    // Створюємо заняття у статусі draft.
+    const result = await lesson({
+      ...g,
+      ...teacher,
     });
+
+    const scheduleId = result.rows[0].id;
+
+    // Публікуємо день.
+    await publishDay(g.groupId);
+
+    // Перевіряємо заборону видалення опублікованого заняття.
+    await assert.rejects(
+      db.query(
+        'DELETE FROM schedule WHERE id = $1',
+        [scheduleId]
+      ),
+      /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+    );
+  });
+});
+
       await t.test('17. Employee teacher can view only assigned lessons', async () => {
       await rollback(async () => {
         const g = await group(false);

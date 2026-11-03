@@ -1,3 +1,4 @@
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -6,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import request from 'supertest';
 import { Client } from 'pg';
+import { createSession } from '../../src/utils/sessions.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -13,8 +15,9 @@ const migrate = fileURLToPath(
   new URL('../../src/database/migrate.js', import.meta.url)
 );
 
-// Контрольний сценарій: діти 3 років, 5 кімнат, 20 днів харчування,
-// закупівля 200 грн/день, без знижки.
+// Контрольний сценарій: діти 3 років, 5 кімнат,
+// 20 днів харчування, закупівля 200 грн/день,
+// без знижки.
 const SCENARIO = {
   age: 3,
   available_rooms: 5,
@@ -55,14 +58,32 @@ test('Break-even report HTTP integration (BUG-003)', {
 
     const { default: app } = await import('../../src/app.js');
     const { pool } = await import('../../src/config/database.js');
+
     appPool = pool;
+
+    // Створюємо тестового адміністратора.
+    const adminUser = await pool.query(
+      `INSERT INTO users (username, password_hash, role)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [
+        `break_even_admin_${randomUUID().slice(0, 8)}`,
+        'test-hash',
+        'admin',
+      ]
+    );
+
+    // Створюємо сесію адміністратора.
+    const adminToken = createSession(adminUser.rows[0].id).token;
 
     db = new Client({ database: dbName });
     await db.connect();
 
-    const breakEven = query =>
+    // Усі запити до Break-even API авторизовані.
+    const breakEven = (query) =>
       request(app)
         .get('/api/v1/reports/break-even')
+        .set('Authorization', `Bearer ${adminToken}`)
         .query(query);
 
     await t.test('Returns minimal break-even configuration', async () => {
@@ -72,8 +93,10 @@ test('Break-even report HTTP integration (BUG-003)', {
       assert.equal(response.body.data.reachable, true);
 
       // 26 * (15000 + 20 * 400) = 598000;
-      // 280000 + 2 * (2000 * 13 + 5000) + 2 * (20000 + 3000) = 388000;
-      // 26 * 20 * 200 = 104000; 2 кімнати * 50000 = 100000.
+      // 280000 + 2 * (2000 * 13 + 5000)
+      // + 2 * (20000 + 3000) = 388000;
+      // 26 * 20 * 200 = 104000;
+      // 2 кімнати * 50000 = 100000.
       assert.deepEqual(response.body.data.break_even, {
         children_count: 26,
         group_count: 2,
@@ -140,6 +163,7 @@ test('Break-even report HTTP integration (BUG-003)', {
           400,
           JSON.stringify(query)
         );
+
         assert.equal(
           response.body.message,
           'Invalid break-even parameters'

@@ -126,6 +126,42 @@ async function main() {
         status
       ]
     );
+  }async function prepareDay(groupId) {
+    const day = '2026-11-02';
+
+    const blocks = [
+      ['meal', '08:00', '08:30'],
+      ['meal', '12:00', '12:30'],
+      ['nap', '13:00', '14:00'],
+      ['meal', '15:00', '15:30'],
+    ];
+
+    for (const [kind, start, end] of blocks) {
+      await pool.query(
+        `INSERT INTO kms_daily_blocks
+           (group_id, block_date, kind, start_time, end_time)
+         VALUES (
+           $1, $2::date, $3,
+           $4::timestamptz, $5::timestamptz
+         )`,
+        [
+          groupId,
+          day,
+          kind,
+          `${day} ${start}+02`,
+          `${day} ${end}+02`,
+        ]
+      );
+    }
+  }
+
+  async function publishDay(groupId) {
+    await pool.query(
+      `SELECT kms_publish_group_day(
+        $1, $2::date, TIME '08:00'
+      )`,
+      [groupId, '2026-11-02']
+    );
   }
 
   const first = await group();
@@ -134,17 +170,26 @@ async function main() {
   const firstTeacher = await teacher();
   const secondTeacher = await teacher();
 
+
+  await prepareDay(first.groupId);
+  await prepareDay(second.groupId);
+
+
   const publishedId = await lesson(
     first,
     firstTeacher,
-    'published'
+    'draft'
   );
 
   const otherId = await lesson(
     second,
     secondTeacher,
-    'published'
+    'draft'
   );
+
+
+  await publishDay(first.groupId);
+  await publishDay(second.groupId);
 
   const draftId = await lesson(
     first,

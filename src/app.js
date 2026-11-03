@@ -1,8 +1,10 @@
+
+import express from 'express';
+
+import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 
-import express from 'express';
-import { requireAuth } from './middleware/auth.js';
 import authRouter from './routes/auth_router.js';
 import childrenRouter from './routes/children_router.js';
 import discountsRouter from './routes/discounts.routes.js';
@@ -30,27 +32,30 @@ const API_PREFIX = '/api/v1';
 app.disable('x-powered-by');
 app.use(express.json());
 
+// Authentication routes
 app.use(`${API_PREFIX}/auth`, authRouter);
-app.use(`${API_PREFIX}`, requireAuth);
-app.use(`${API_PREFIX}/children`, childrenRouter);
-app.use(`${API_PREFIX}/discounts`, discountsRouter);
-app.use(`${API_PREFIX}/employees`, employeesRouter);
-app.use(`${API_PREFIX}/expenses`, expensesRouter);
-app.use(`${API_PREFIX}/food`, foodRouter);
-app.use(`${API_PREFIX}/groups`, groupsRouter);
-app.use(`${API_PREFIX}/health`, healthRouter);
-app.use(`${API_PREFIX}/invoices`, invoicesRouter);
-app.use(`${API_PREFIX}/parents`, parentsRouter);
-app.use(`${API_PREFIX}/payments`, paymentsRouter);
-app.use(`${API_PREFIX}/reports`, reportsRouter);
-app.use(`${API_PREFIX}/rooms`, roomsRouter);
-app.use(`${API_PREFIX}/salaries`, salariesRouter);
-app.use(`${API_PREFIX}/schedule`, scheduleRouter);
-app.use(`${API_PREFIX}/daily-blocks`, dailyBlocksRouter);
-app.use(`${API_PREFIX}/settings`, settingsRouter);
-app.use(`${API_PREFIX}/subjects`, subjectsRouter);
-app.use(`${API_PREFIX}/tuition`, tuitionRouter);
-app.use(`${API_PREFIX}/users`, usersRouter);
+
+// Protected API routes
+app.use(`${API_PREFIX}/children`, requireAuth, childrenRouter);
+app.use(`${API_PREFIX}/discounts`, requireAuth, discountsRouter);
+app.use(`${API_PREFIX}/employees`, requireAuth, employeesRouter);
+app.use(`${API_PREFIX}/expenses`, requireAuth, expensesRouter);
+app.use(`${API_PREFIX}/food`, requireAuth, foodRouter);
+app.use(`${API_PREFIX}/groups`, requireAuth, groupsRouter);
+app.use(`${API_PREFIX}/health`, requireAuth, healthRouter);
+app.use(`${API_PREFIX}/invoices`, requireAuth, invoicesRouter);
+app.use(`${API_PREFIX}/parents`, requireAuth, parentsRouter);
+app.use(`${API_PREFIX}/payments`, requireAuth, paymentsRouter);
+app.use(`${API_PREFIX}/reports`, requireAuth, reportsRouter);
+app.use(`${API_PREFIX}/rooms`, requireAuth, roomsRouter);
+app.use(`${API_PREFIX}/salaries`, requireAuth, salariesRouter);
+app.use(`${API_PREFIX}/schedule`, requireAuth, scheduleRouter);
+app.use(`${API_PREFIX}/daily-blocks`, requireAuth, dailyBlocksRouter);
+app.use(`${API_PREFIX}/settings`, requireAuth, settingsRouter);
+app.use(`${API_PREFIX}/subjects`, requireAuth, subjectsRouter);
+app.use(`${API_PREFIX}/tuition`, requireAuth, tuitionRouter);
+app.use(`${API_PREFIX}/users`, requireAuth, usersRouter);
+
 
 app.use(notFound);
 app.use(errorHandler);
