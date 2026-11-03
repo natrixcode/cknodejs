@@ -140,11 +140,37 @@ export async function getSalariesReport(filters) {
   );
 }
 
-export const getBreakEvenReport = () =>
-  fail(
-    501,
-    'Для break-even бракує вхідних параметрів прогнозу в маршруті'
+export async function getBreakEvenReport(params) {
+  const result = await one(
+    'SELECT * FROM kms_break_even($1, $2, $3, $4, $5)',
+    [
+      params.age,
+      params.available_rooms,
+      params.meal_days,
+      params.food_cost_per_day,
+      params.discount_percent
+    ]
   );
+
+  return ok({
+    parameters: params,
+    reachable: result.reachable,
+    break_even: result.reachable
+      ? {
+          children_count: result.children_count,
+          group_count: result.group_count,
+          monthly_revenue: result.monthly_revenue,
+          payroll_cost: result.payroll_cost,
+          food_procurement_cost: result.food_procurement_cost,
+          room_model_cost: result.room_model_cost,
+          modeled_profit: result.modeled_profit
+        }
+      : null,
+    message: result.reachable
+      ? null
+      : 'Беззбитковість недосяжна навіть за повного завантаження кімнат'
+  });
+}
 
 export async function getDashboardReport(filters) {
   if (onlyUAH(filters)) return onlyUAH(filters);
