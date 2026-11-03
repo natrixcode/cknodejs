@@ -1,0 +1,8 @@
+info:
+  name: Break-even
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:3000/api/v1/reports/break-even?age=3&available_rooms=5&meal_days=20&food_cost_per_day=200&discount_percent=0
