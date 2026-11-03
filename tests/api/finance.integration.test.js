@@ -254,6 +254,58 @@ test('Invoices, payments and finance reports HTTP integration', {
       await pay(invoice.id, 100, 409);
     });
 
+    await t.test('Concurrent identical payments create one record', async () => {
+      // Рахунок зі знижкою: 20000, уже сплачено 100.
+      const responses = await Promise.all(
+        Array.from({ length: 8 }, () =>
+          request(app)
+            .post('/api/v1/payments')
+            .send({
+              invoice_id: Number(discountedInvoice.id),
+              amount: 500,
+              method: 'card',
+              payment_date: '2026-12-06T10:00:00+02:00',
+              transaction_id: 'finance-concurrent',
+            })
+        )
+      );
+
+      const statuses = responses.map(r => r.status).sort();
+      assert.deepEqual(statuses, [200, 200, 200, 200, 200, 200, 200, 201]);
+
+      const ids = new Set(responses.map(r => r.body.data.id));
+      assert.equal(ids.size, 1);
+
+      const invoice = await get(`/invoices/${discountedInvoice.id}`);
+      assert.equal(Number(invoice.paid_amount), 600);
+      assert.equal(Number(invoice.balance_due), 19400);
+    });
+
+    await t.test('Concurrent payments cannot overpay the invoice', async () => {
+      // Залишок 19400: пройдуть лише три платежі по 6000.
+      const responses = await Promise.all(
+        Array.from({ length: 4 }, (_, i) =>
+          request(app)
+            .post('/api/v1/payments')
+            .send({
+              invoice_id: Number(discountedInvoice.id),
+              amount: 6000,
+              method: 'card',
+              payment_date: '2026-12-07T10:00:00+02:00',
+              transaction_id: `finance-parallel-${i}`,
+            })
+        )
+      );
+
+      const statuses = responses.map(r => r.status).sort();
+      assert.deepEqual(statuses, [201, 201, 201, 409]);
+
+      const invoice = await get(`/invoices/${discountedInvoice.id}`);
+      assert.equal(Number(invoice.paid_amount), 18600);
+      assert.equal(Number(invoice.balance_due), 1400);
+      assert.equal(invoice.status, 'issued');
+    });
+
     const manager = await createEmployee('manager', 1);
     const teacher = await createEmployee('teacher', 2);
 
