@@ -120,9 +120,9 @@ test('SQL business rules on isolated PostgreSQL databases', {
     }
     if (process.env.SQL_RULES_REPRO_ONLY === '1') return;
     const before = (await c.query('SELECT * FROM schema_migrations ORDER BY number')).rows;
-    assert.match(await migrate(name), /1 applied, 11 already applied/);
+    assert.match(await migrate(name), /2 applied, 11 already applied/);
     assert.deepEqual((await c.query('SELECT * FROM schema_migrations WHERE number<=11 ORDER BY number')).rows, before);
-    assert.match(await migrate(name), /0 applied, 12 already applied/);
+    assert.match(await migrate(name), /0 applied, 13 already applied/);
     await st.test('legacy published day requires explicit window before editing', async () => {
       await assert.rejects(c.query('UPDATE kms_daily_blocks SET start_time=start_time WHERE id=$1', [f.blocks[0]]), /KMS_REPUBLISH_DAY_REQUIRED/);
       await c.query("SELECT kms_publish_group_day($1,'2026-11-02')", [f.groups[0].group]);
@@ -132,9 +132,9 @@ test('SQL business rules on isolated PostgreSQL databases', {
   if (process.env.SQL_RULES_REPRO_ONLY === '1') return;
   await t.test('all migrations on clean database and repeat', async (st) => {
     const { name, c } = await database(st);
-    assert.match(await migrate(name), /12 applied, 0 already applied/);
+    assert.match(await migrate(name), /13 applied, 0 already applied/);
     const before = (await c.query('SELECT * FROM schema_migrations ORDER BY number')).rows;
-    assert.match(await migrate(name), /0 applied, 12 already applied/);
+    assert.match(await migrate(name), /0 applied, 13 already applied/);
     assert.deepEqual((await c.query('SELECT * FROM schema_migrations ORDER BY number')).rows, before);
     await regression(st, c, await fixture(c));
   });
