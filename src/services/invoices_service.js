@@ -2,21 +2,19 @@ import {
   ok, fail, missing, rows, one
 } from './_common.js';
 
-// Сплачену суму й залишок боргу рахує PostgreSQL.
+// Залишок боргу рахує SQL-функція kms_invoice_balance.
 const invoiceWithBalance = `
   SELECT
     i.*,
-    COALESCE(SUM(p.amount), 0)::NUMERIC(12,2) AS paid_amount,
-    (i.total_amount - COALESCE(SUM(p.amount), 0))::NUMERIC(12,2)
-      AS balance_due
+    (i.total_amount - b.balance)::NUMERIC(12,2) AS paid_amount,
+    b.balance::NUMERIC(12,2) AS balance_due
   FROM invoices i
-  LEFT JOIN payments p ON p.invoice_id = i.id`;
+  CROSS JOIN LATERAL kms_invoice_balance(i.id) AS b(balance)`;
 
 export async function getInvoices() {
   return ok(
     await rows(
       `${invoiceWithBalance}
-       GROUP BY i.id
        ORDER BY i.id`
     )
   );
@@ -25,8 +23,7 @@ export async function getInvoices() {
 export async function getInvoiceById(id) {
   const invoice = await one(
     `${invoiceWithBalance}
-     WHERE i.id = $1
-     GROUP BY i.id`,
+     WHERE i.id = $1`,
     [id]
   );
 
