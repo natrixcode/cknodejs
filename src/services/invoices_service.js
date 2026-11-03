@@ -1,12 +1,34 @@
 import {
-  ok, fail, missing, list, byId, one
+  ok, fail, missing, rows, one
 } from './_common.js';
 
-export const getInvoices = () =>
-  list('invoices');
+// Залишок боргу рахує SQL-функція kms_invoice_balance.
+const invoiceWithBalance = `
+  SELECT
+    i.*,
+    (i.total_amount - b.balance)::NUMERIC(12,2) AS paid_amount,
+    b.balance::NUMERIC(12,2) AS balance_due
+  FROM invoices i
+  CROSS JOIN LATERAL kms_invoice_balance(i.id) AS b(balance)`;
 
-export const getInvoiceById = id =>
-  byId('invoices', id);
+export async function getInvoices() {
+  return ok(
+    await rows(
+      `${invoiceWithBalance}
+       ORDER BY i.id`
+    )
+  );
+}
+
+export async function getInvoiceById(id) {
+  const invoice = await one(
+    `${invoiceWithBalance}
+     WHERE i.id = $1`,
+    [id]
+  );
+
+  return invoice ? ok(invoice) : missing();
+}
 
 export async function createInvoice(data) {
   const {
