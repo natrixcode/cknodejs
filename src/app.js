@@ -1,4 +1,5 @@
 import { errorHandler } from './middleware/errorHandler.js';
+import { notFound } from './middleware/notFound.js';
 
 import express from 'express';
 
@@ -50,6 +51,7 @@ app.use(`${API_PREFIX}/subjects`, subjectsRouter);
 app.use(`${API_PREFIX}/tuition`, tuitionRouter);
 app.use(`${API_PREFIX}/users`, usersRouter);
 
+app.use(notFound);
 app.use(errorHandler);
 
 export default app;
