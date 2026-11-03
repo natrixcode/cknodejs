@@ -31,6 +31,17 @@ export async function calculateSalary(data) {
   });
 }
 
+// Місячне нарахування за правилами kms_create_salary.
+export async function createSalary(data) {
+  return ok(
+    await one(
+      'SELECT * FROM kms_create_salary($1, $2)',
+      [data.employee_id, data.period_start]
+    ),
+    201
+  );
+}
+
 export async function getEmployeeSalaries(employeeId) {
   return ok(
     await rows(

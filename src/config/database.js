@@ -1,4 +1,8 @@
-import { Pool } from 'pg';
+import pg, { Pool } from 'pg';
+
+// DATE повертаємо як рядок YYYY-MM-DD. Інакше pg створює Date
+// у часовому поясі сервера, і в Києві дата зсувається на день назад.
+pg.types.setTypeParser(pg.types.builtins.DATE, value => value);
 
 // pg читає PGHOST, PGPORT, PGDATABASE, PGUSER і PGPASSWORD із середовища.
 export const pool = new Pool({
