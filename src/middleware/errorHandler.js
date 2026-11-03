@@ -63,15 +63,15 @@ const businessErrors = {
   KMS_EXISTING_STAFF_ASSIGNMENT_INVALID: 409,
   KMS_DEACTIVATE_GROUP_BEFORE_STAFF_CHANGE: 409,
   KMS_GROUP_REQUIRES_EDUCATOR_AND_ASSISTANT: 409,
-  KMS_GROUP_NOT_ACTIVE: 409,
-  KMS_TEACHER_SUBJECT_MISMATCH: 409,
-  KMS_BLOCK_LESSON_CONFLICT: 409,
-  KMS_CONSECUTIVE_MEALS: 409,
-  KMS_LESSON_DAILY_BLOCK_CONFLICT: 409,
-  KMS_DAILY_ROUTINE_INCOMPLETE: 409,
-  KMS_BLOCK_OUTSIDE_WORKDAY: 409,
-  KMS_LESSON_OUTSIDE_WORKDAY: 409,
-  KMS_REPUBLISH_DAY_REQUIRED: 409,
+  KMS_GROUP_NOT_ACTIVE: 422,
+  KMS_TEACHER_SUBJECT_MISMATCH: 422,
+  KMS_BLOCK_LESSON_CONFLICT: 422,
+  KMS_CONSECUTIVE_MEALS: 422,
+  KMS_LESSON_DAILY_BLOCK_CONFLICT: 422,
+  KMS_DAILY_ROUTINE_INCOMPLETE: 422,
+  KMS_BLOCK_OUTSIDE_WORKDAY: 422,
+  KMS_LESSON_OUTSIDE_WORKDAY: 422,
+  KMS_REPUBLISH_DAY_REQUIRED: 422,
   KMS_DISCOUNT_NOT_AVAILABLE: 409,
   KMS_ISSUED_INVOICE_IMMUTABLE: 409,
   KMS_FINAL_INVOICE_IMMUTABLE: 409,
@@ -144,7 +144,11 @@ export function errorHandler(error, req, res, next) {
     status = 400;
     message = 'Некоректні дані або порушено обмеження бази даних';
   } else if (conflictCodes.has(sqlCode)) {
-    status = 409;
+    const schedulePath =
+      req?.originalUrl?.startsWith('/api/v1/schedule') ||
+      req?.originalUrl?.startsWith('/api/v1/daily-blocks');
+
+    status = schedulePath ? 422 : 409;
     message = 'Конфлікт з наявними даними';
   }
 

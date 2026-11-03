@@ -134,7 +134,7 @@ export async function publishSchedule(data) {
 
       if (all.some(s => !ids.includes(s.id))) {
         return fail(
-          409,
+          422,
           'Потрібно передати всі draft-заняття вибраного дня групи'
         );
       }

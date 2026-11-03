@@ -230,7 +230,7 @@ test('Complete manual schedule HTTP scenario', {
         day_start: '08:00'
       });
 
-      assert.equal(response.status, 409);
+      assert.equal(response.status, 422);
       assert.equal(
         response.body.message,
         'KMS_DAILY_ROUTINE_INCOMPLETE'
@@ -296,7 +296,7 @@ test('Complete manual schedule HTTP scenario', {
         day_start: '08:00'
       });
 
-      assert.equal(rejected.status, 409);
+      assert.equal(rejected.status, 422);
       assert.equal(
         rejected.body.message,
         'KMS_LESSON_DAILY_BLOCK_CONFLICT'
@@ -338,7 +338,7 @@ test('Complete manual schedule HTTP scenario', {
       const meal = t.blocks[0];
 
       const rejected = await del(`/daily-blocks/${meal.id}`);
-      assert.equal(rejected.status, 409);
+      assert.equal(rejected.status, 422);
       assert.equal(
         rejected.body.message,
         'KMS_DAILY_ROUTINE_INCOMPLETE'
@@ -352,7 +352,7 @@ test('Complete manual schedule HTTP scenario', {
         }
       );
 
-      assert.equal(outside.status, 409);
+      assert.equal(outside.status, 422);
       assert.equal(
         outside.body.message,
         'KMS_BLOCK_OUTSIDE_WORKDAY'
@@ -391,7 +391,7 @@ test('Complete manual schedule HTTP scenario', {
         day_start: '08:00'
       });
 
-      assert.equal(rejected.status, 409);
+      assert.equal(rejected.status, 422);
 
       const unchanged = expectStatus(
         await get(`/schedule/${lesson.id}`),
@@ -422,6 +422,395 @@ test('Complete manual schedule HTTP scenario', {
       });
       assert.equal(invalidStart.status, 400);
     });
+
+
+    // EXTENDED_MANUAL_SCHEDULE_HTTP_TESTS
+
+    const lessonPayload = (
+      groupId,
+      roomId,
+      start,
+      end,
+      date = day
+    ) => ({
+      group_id: numericId(groupId),
+      room_id: numericId(roomId),
+      teacher_id: numericId(teacherId),
+      subject_id: numericId(t.subjectId),
+      start_time: `${date}T${start}:00+02:00`,
+      end_time: `${date}T${end}:00+02:00`,
+      status: 'draft'
+    });
+
+    const createDraft = async (payload) => {
+      const response = await post('/schedule', payload);
+      const data = expectStatus(response, 201);
+      return data.kms_create_lesson ?? data;
+    };
+
+    const publishOne = (id, dayStart = '08:00') =>
+      post('/schedule/publish', {
+        schedule_ids: [id],
+        day_start: dayStart
+      });
+
+    await t.test('HTTP: lesson conflicts with nap', async () => {
+      const lesson = await createDraft(
+        lessonPayload(
+          first.groupId,
+          first.roomId,
+          '13:00',
+          '14:00'
+        )
+      );
+
+      const response = await publishOne(lesson.id);
+
+      assert.equal(
+        response.status,
+        422,
+        JSON.stringify(response.body)
+      );
+
+      const saved = expectStatus(
+        await get(`/schedule/${lesson.id}`),
+        200
+      );
+
+      assert.equal(saved.status, 'draft');
+
+      assert.equal(
+        (await del(`/schedule/${lesson.id}`)).status,
+        204
+      );
+    });
+
+    await t.test('HTTP: group overlap is rejected', async () => {
+      const lesson = await createDraft(
+        lessonPayload(
+          first.groupId,
+          second.roomId,
+          '10:15',
+          '10:45'
+        )
+      );
+
+      const response = await publishOne(lesson.id);
+
+      assert.equal(
+        response.status,
+        422,
+        JSON.stringify(response.body)
+      );
+
+      assert.equal(
+        (await del(`/schedule/${lesson.id}`)).status,
+        204
+      );
+    });
+
+    await t.test('HTTP: room overlap is rejected', async () => {
+      const otherTeacher = await employee('teacher');
+
+      expectStatus(
+        await put(
+          `/subjects/${t.subjectId}/teachers`,
+          {
+            employee_ids: [
+              numericId(teacherId),
+              numericId(otherTeacher)
+            ]
+          }
+        ),
+        200
+      );
+
+      const payload = lessonPayload(
+        second.groupId,
+        first.roomId,
+        '10:15',
+        '10:45'
+      );
+
+      payload.teacher_id = numericId(otherTeacher);
+
+      const lesson = await createDraft(payload);
+      const response = await publishOne(lesson.id);
+
+      assert.equal(
+        response.status,
+        422,
+        JSON.stringify(response.body)
+      );
+
+      assert.equal(
+        (await del(`/schedule/${lesson.id}`)).status,
+        204
+      );
+    });
+
+    await t.test(
+      'HTTP: edit published lesson without breaking routine',
+      async () => {
+        const updated = expectStatus(
+          await patch(`/schedule/${t.lessonId}`, {
+            start_time: at('09:30'),
+            end_time: at('10:30')
+          }),
+          200
+        );
+
+        assert.equal(updated.status, 'published');
+
+        assert.equal(
+          new Date(updated.start_time).toISOString(),
+          new Date(at('09:30')).toISOString()
+        );
+
+        const restored = expectStatus(
+          await patch(`/schedule/${t.lessonId}`, {
+            start_time: at('10:00'),
+            end_time: at('11:00')
+          }),
+          200
+        );
+
+        assert.equal(restored.status, 'published');
+
+        const forbidden = await patch(
+          `/schedule/${t.lessonId}`,
+          {
+            start_time: at('12:00'),
+            end_time: at('12:30')
+          }
+        );
+
+        assert.equal(
+          forbidden.status,
+          422,
+          JSON.stringify(forbidden.body)
+        );
+      }
+    );
+
+    await t.test(
+      'HTTP: move draft lesson to another date and group',
+      async () => {
+        const nextDay = '2026-11-10';
+
+        const lesson = await createDraft(
+          lessonPayload(
+            second.groupId,
+            second.roomId,
+            '09:00',
+            '10:00',
+            nextDay
+          )
+        );
+
+        const moved = expectStatus(
+          await patch(`/schedule/${lesson.id}`, {
+            group_id: numericId(first.groupId),
+            room_id: numericId(first.roomId),
+            start_time: '2026-11-11T09:00:00+02:00',
+            end_time: '2026-11-11T10:00:00+02:00'
+          }),
+          200
+        );
+
+        assert.equal(
+          String(moved.group_id),
+          String(first.groupId)
+        );
+
+        assert.equal(
+          new Date(moved.start_time).toISOString(),
+          new Date('2026-11-11T09:00:00+02:00')
+            .toISOString()
+        );
+
+        assert.equal(
+          (await del(`/schedule/${lesson.id}`)).status,
+          204
+        );
+      }
+    );
+
+    await t.test(
+      'HTTP: full CRUD and transfer of nap block',
+      async () => {
+        const nap = expectStatus(
+          await post('/daily-blocks', {
+            group_id: numericId(second.groupId),
+            block_date: '2026-11-10',
+            kind: 'nap',
+            start_time: '2026-11-10T13:00:00+02:00',
+            end_time: '2026-11-10T14:00:00+02:00'
+          }),
+          201
+        );
+
+        const found = expectStatus(
+          await get(`/daily-blocks/${nap.id}`),
+          200
+        );
+
+        assert.equal(found.kind, 'nap');
+
+        const updated = expectStatus(
+          await patch(`/daily-blocks/${nap.id}`, {
+            start_time: '2026-11-10T13:30:00+02:00',
+            end_time: '2026-11-10T14:30:00+02:00'
+          }),
+          200
+        );
+
+        assert.equal(updated.kind, 'nap');
+
+        const moved = expectStatus(
+          await patch(`/daily-blocks/${nap.id}`, {
+            group_id: numericId(first.groupId),
+            block_date: '2026-11-11',
+            start_time: '2026-11-11T13:00:00+02:00',
+            end_time: '2026-11-11T14:00:00+02:00'
+          }),
+          200
+        );
+
+        assert.equal(
+          String(moved.group_id),
+          String(first.groupId)
+        );
+
+        assert.equal(
+          (await del(`/daily-blocks/${nap.id}`)).status,
+          204
+        );
+
+        assert.equal(
+          (await get(`/daily-blocks/${nap.id}`)).status,
+          404
+        );
+      }
+    );
+
+    await t.test(
+      'HTTP: publish day at 09:00 and enforce 8 hours',
+      async () => {
+        const third = await group();
+        const thirdTeacher = await employee('teacher');
+
+        expectStatus(
+          await put(
+            `/subjects/${t.subjectId}/teachers`,
+            {
+              employee_ids: [
+                numericId(teacherId),
+                numericId(thirdTeacher)
+              ]
+            }
+          ),
+          200
+        );
+
+        const customDate = '2026-11-12';
+
+        const customTime = (time) =>
+          `${customDate}T${time}:00+02:00`;
+
+        for (const [kind, start, end] of [
+          ['meal', '09:00', '09:30'],
+          ['meal', '13:00', '13:30'],
+          ['nap', '14:00', '15:00'],
+          ['meal', '16:00', '16:30']
+        ]) {
+          expectStatus(
+            await post('/daily-blocks', {
+              group_id: numericId(third.groupId),
+              block_date: customDate,
+              kind,
+              start_time: customTime(start),
+              end_time: customTime(end)
+            }),
+            201
+          );
+        }
+
+        const payload = lessonPayload(
+          third.groupId,
+          third.roomId,
+          '11:00',
+          '12:00',
+          customDate
+        );
+
+        payload.teacher_id = numericId(thirdTeacher);
+
+        const lesson = await createDraft(payload);
+
+        const published = expectStatus(
+          await publishOne(lesson.id, '09:00'),
+          200
+        );
+
+        assert.equal(Number(published.published), 1);
+
+        const window = await db.query(
+          `SELECT day_start::text
+           FROM kms_group_day_windows
+           WHERE group_id=$1 AND block_date=$2`,
+          [third.groupId, customDate]
+        );
+
+        assert.equal(
+          window.rows[0].day_start,
+          '09:00:00'
+        );
+
+        const outside = await patch(
+          `/schedule/${lesson.id}`,
+          {
+            start_time: customTime('17:30'),
+            end_time: customTime('18:00')
+          }
+        );
+
+        assert.equal(
+          outside.status,
+          422,
+          JSON.stringify(outside.body)
+        );
+
+        const stillPublished = expectStatus(
+          await get(`/schedule/${lesson.id}`),
+          200
+        );
+
+        assert.equal(
+          stillPublished.status,
+          'published'
+        );
+      }
+    );
+
+    await t.test(
+      'HTTP: Europe/Kyiv validation rejects cross-day block',
+      async () => {
+        const response = await post('/daily-blocks', {
+          group_id: numericId(second.groupId),
+          block_date: '2026-11-10',
+          kind: 'nap',
+          start_time: '2026-11-10T23:30:00+02:00',
+          end_time: '2026-11-11T00:30:00+02:00'
+        });
+
+        assert.equal(
+          response.status,
+          400,
+          JSON.stringify(response.body)
+        );
+      }
+    );
 
     const persisted = await db.query(
       `SELECT status FROM schedule WHERE id=$1`,
