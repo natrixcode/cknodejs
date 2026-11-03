@@ -31,6 +31,13 @@ export async function createPayment(data) {
     );
   }
 
+  // Повторний запит з тим самим transaction_id
+  // не створює новий платіж, тому повертаємо 200.
+  const replay = await one(
+    'SELECT 1 FROM payments WHERE transaction_id = $1',
+    [data.transaction_id]
+  );
+
   const payment = await one(
     `SELECT * FROM kms_register_payment(
       $1, $2, $3, $4, $5
@@ -44,7 +51,7 @@ export async function createPayment(data) {
     ]
   );
 
-  return ok(payment, 201);
+  return ok(payment, replay ? 200 : 201);
 }
 
 export async function getInvoicePayments(invoiceId) {

@@ -1,12 +1,37 @@
 import {
-  ok, fail, missing, list, byId, one
+  ok, fail, missing, rows, one
 } from './_common.js';
 
-export const getInvoices = () =>
-  list('invoices');
+// Сплачену суму й залишок боргу рахує PostgreSQL.
+const invoiceWithBalance = `
+  SELECT
+    i.*,
+    COALESCE(SUM(p.amount), 0)::NUMERIC(12,2) AS paid_amount,
+    (i.total_amount - COALESCE(SUM(p.amount), 0))::NUMERIC(12,2)
+      AS balance_due
+  FROM invoices i
+  LEFT JOIN payments p ON p.invoice_id = i.id`;
 
-export const getInvoiceById = id =>
-  byId('invoices', id);
+export async function getInvoices() {
+  return ok(
+    await rows(
+      `${invoiceWithBalance}
+       GROUP BY i.id
+       ORDER BY i.id`
+    )
+  );
+}
+
+export async function getInvoiceById(id) {
+  const invoice = await one(
+    `${invoiceWithBalance}
+     WHERE i.id = $1
+     GROUP BY i.id`,
+    [id]
+  );
+
+  return invoice ? ok(invoice) : missing();
+}
 
 export async function createInvoice(data) {
   const {

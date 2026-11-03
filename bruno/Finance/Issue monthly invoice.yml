@@ -1,0 +1,17 @@
+info:
+  name: Issue monthly invoice
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/invoices
+  body:
+    type: json
+    data: |-
+      {
+        "child_id": 1,
+        "period_start": "2026-12-01",
+        "period_end": "2026-12-31",
+        "parameters": { "months": 1, "meal_days": 20 }
+      }

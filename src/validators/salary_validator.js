@@ -1,6 +1,12 @@
 
 import { z } from 'zod';
 
+export const createSalarySchema = z.strictObject({
+  employee_id: z.number().int().positive(),
+
+  period_start: z.iso.date(),
+});
+
 export const salarySchema = z.strictObject({
   employee_id: z.number().int().positive(),
 

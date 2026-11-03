@@ -1,0 +1,18 @@
+info:
+  name: Register payment
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/payments
+  body:
+    type: json
+    data: |-
+      {
+        "invoice_id": 1,
+        "amount": 10000,
+        "method": "card",
+        "payment_date": "2026-12-05T10:00:00+02:00",
+        "transaction_id": "bank-2026-12-05-0001"
+      }
