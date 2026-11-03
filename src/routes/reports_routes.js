@@ -1,6 +1,8 @@
+
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireRole } from '../middleware/auth.js';
+
 import {
   getFinanceReport,
   getProfitReport,
@@ -13,8 +15,31 @@ import {
   getDashboardReport
 } from '../controllers/reports_controller.js';
 
+import { breakEvenQuerySchema } from '../validators/break_even_validator.js';
+
 const router = Router();
+
+// Access Control: financial reports are available only to Admin.
 router.use(requireRole('admin'));
+
+// Break-even uses its own query parameters.
+router.get('/break-even', (req, res, next) => {
+  const parsed = breakEvenQuerySchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: 'Invalid break-even parameters',
+      errors: parsed.error.issues.map(issue => ({
+        field: issue.path.join('.'),
+        message: issue.message
+      }))
+    });
+  }
+
+  res.locals.breakEvenParams = parsed.data;
+  next();
+}, getBreakEvenReport);
+
 const reportQuerySchema = z.strictObject({
   start_date: z.iso.date(),
   end_date: z.iso.date(),
@@ -51,7 +76,6 @@ router.get('/profit/groups/:groupId', getGroupProfitReport);
 router.get('/expenses', getExpensesReport);
 router.get('/revenue', getRevenueReport);
 router.get('/salaries', getSalariesReport);
-router.get('/break-even', getBreakEvenReport);
 router.get('/dashboard', getDashboardReport);
 
 export default router;

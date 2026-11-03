@@ -1,4 +1,5 @@
 import { errorHandler } from './middleware/errorHandler.js';
+import { notFound } from './middleware/notFound.js';
 
 import express from 'express';
 import { requireAuth } from './middleware/auth.js';
@@ -17,6 +18,7 @@ import reportsRouter from './routes/reports_routes.js';
 import roomsRouter from './routes/rooms_routes.js';
 import salariesRouter from './routes/salaries_routes.js';
 import scheduleRouter from './routes/schedule_routes.js';
+import dailyBlocksRouter from './routes/daily_blocks_routes.js';
 import settingsRouter from './routes/settings_routes.js';
 import subjectsRouter from './routes/subjects_routes.js';
 import tuitionRouter from './routes/tuition_routes.js';
@@ -44,11 +46,13 @@ app.use(`${API_PREFIX}/reports`, reportsRouter);
 app.use(`${API_PREFIX}/rooms`, roomsRouter);
 app.use(`${API_PREFIX}/salaries`, salariesRouter);
 app.use(`${API_PREFIX}/schedule`, scheduleRouter);
+app.use(`${API_PREFIX}/daily-blocks`, dailyBlocksRouter);
 app.use(`${API_PREFIX}/settings`, settingsRouter);
 app.use(`${API_PREFIX}/subjects`, subjectsRouter);
 app.use(`${API_PREFIX}/tuition`, tuitionRouter);
 app.use(`${API_PREFIX}/users`, usersRouter);
 
+app.use(notFound);
 app.use(errorHandler);
 
 export default app;

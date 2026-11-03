@@ -1,0 +1,18 @@
+info:
+  name: Publish day
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/schedule/publish
+  body:
+    type: json
+    data: |-
+      {
+        "schedule_ids": [1],
+        "day_start": "08:00"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"

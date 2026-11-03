@@ -1,8 +1,11 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireRole } from '../middleware/auth.js';
+
+import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
+import { validateBody } from '../middleware/validate.js';
+
 import {
   getSchedules,
   getScheduleById,
@@ -15,9 +18,10 @@ import {
 } from '../controllers/schedule_controller.js';
 
 import { scheduleSchema } from '../validators/schedule_validator.js';
-import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+
+router.use(requireAuth);
 
 const idSchema = z.union([
   z.number().int().positive().safe(),
@@ -32,9 +36,20 @@ const schedulePatchSchema = z.strictObject({
   teacher_id: z.number().int().positive().optional(),
   room_id: z.number().int().positive().optional(),
   start_time: z.iso.datetime({ offset: true }).optional(),
-  end_time: z.iso.datetime({ offset: true }).optional(),
-  status: z.enum(['draft', 'published']).optional()
-});
+  end_time: z.iso.datetime({ offset: true }).optional()
+}).refine(
+  data => Object.keys(data).length > 0,
+  { message: 'At least one field is required' }
+).refine(
+  data =>
+    !data.start_time ||
+    !data.end_time ||
+    Date.parse(data.end_time) > Date.parse(data.start_time),
+  {
+    path: ['end_time'],
+    message: 'End time must be later than start time'
+  }
+);
 
 const validateScheduleSchema = z.strictObject({
   group_id: z.number().int().positive(),
@@ -52,13 +67,27 @@ const validateScheduleSchema = z.strictObject({
 );
 
 const publishScheduleSchema = z.strictObject({
-  schedule_ids: z.array(idSchema).min(1).refine(
-    ids => new Set(ids).size === ids.length,
-    { message: 'Duplicate schedule IDs' }
-  )
+  schedule_ids: z.array(idSchema)
+    .min(1)
+    .refine(
+      ids => new Set(ids).size === ids.length,
+      { message: 'Duplicate schedule IDs' }
+    ),
+
+  day_start: z.string()
+    .regex(
+      /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/,
+      'Day start must use HH:MM or HH:MM:SS'
+    )
+    .default('08:00')
 });
 
 
+router.get(
+  '/',
+  requireRole('admin', 'manager'),
+  getSchedules
+);
 
 router.get(
   '/:id',
@@ -66,11 +95,7 @@ router.get(
   requireScheduleAccess,
   getScheduleById
 );
-router.get(
-  '/',
-  requireRole('admin', 'manager'),
-  getSchedules
-);
+
 
 router.post(
   '/generate',
@@ -85,12 +110,14 @@ router.post(
   validateSchedule
 );
 
+
 router.post(
   '/publish',
   requireRole('admin'),
   validateBody(publishScheduleSchema),
   publishSchedule
 );
+
 
 router.post(
   '/',

@@ -1,0 +1,21 @@
+info:
+  name: Create meal
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/daily-blocks
+  body:
+    type: json
+    data: |-
+      {
+        "group_id": 1,
+        "block_date": "2026-11-10",
+        "kind": "meal",
+        "start_time": "2026-11-10T12:00:00+02:00",
+        "end_time": "2026-11-10T12:30:00+02:00"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"

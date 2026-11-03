@@ -177,6 +177,43 @@ test('Schedule SQL business logic', {
       );
     }
 
+    // Prepare a complete routine before publishing lessons.
+    async function prepareDay(groupId) {
+      const blocks = [
+        ['meal', '08:00', '08:30'],
+        ['meal', '12:00', '12:30'],
+        ['nap', '13:00', '14:00'],
+        ['meal', '15:00', '15:30'],
+      ];
+
+      for (const [kind, start, end] of blocks) {
+        await db.query(
+          `INSERT INTO kms_daily_blocks
+             (group_id, block_date, kind, start_time, end_time)
+           VALUES (
+             $1, $2::date, $3,
+             $4::timestamptz, $5::timestamptz
+           )`,
+          [
+            groupId,
+            day,
+            kind,
+            `${day} ${start}+02`,
+            `${day} ${end}+02`,
+          ]
+        );
+      }
+    }
+
+    async function publishDay(groupId) {
+      await db.query(
+        `SELECT kms_publish_group_day(
+          $1, $2::date, TIME '08:00'
+        )`,
+        [groupId, day]
+      );
+    }
+
     await t.test('1. Create draft lesson', async () => {
       await rollback(async () => {
         const g = await group(false);
@@ -289,20 +326,20 @@ test('Schedule SQL business logic', {
         const second = await group();
         const teacher = await teacherWithSubject();
 
+        await prepareDay(first.groupId);
+        await lesson({ ...first, ...teacher });
+        await publishDay(first.groupId);
+
+        await prepareDay(second.groupId);
         await lesson({
-          ...first,
+          ...second,
           ...teacher,
-          status: 'published',
+          start: '10:30',
+          end: '11:30',
         });
 
         await assert.rejects(
-          lesson({
-            ...second,
-            ...teacher,
-            start: '10:30',
-            end: '11:30',
-            status: 'published',
-          }),
+          publishDay(second.groupId),
           {
             code: '23P01',
             constraint: 'kms_teacher_no_overlap',
@@ -317,11 +354,9 @@ test('Schedule SQL business logic', {
         const firstTeacher = await teacherWithSubject();
         const secondTeacher = await teacherWithSubject();
 
-        await lesson({
-          ...g,
-          ...firstTeacher,
-          status: 'published',
-        });
+        await prepareDay(g.groupId);
+        await lesson({ ...g, ...firstTeacher });
+        await publishDay(g.groupId);
 
         await assert.rejects(
           lesson({
@@ -343,22 +378,21 @@ test('Schedule SQL business logic', {
         const firstTeacher = await teacherWithSubject();
         const secondTeacher = await teacherWithSubject();
 
+        await prepareDay(first.groupId);
+        await lesson({ ...first, ...firstTeacher });
+        await publishDay(first.groupId);
+
+        await prepareDay(second.groupId);
         await lesson({
-          ...first,
-          ...firstTeacher,
-          status: 'published',
+          groupId: second.groupId,
+          roomId: first.roomId,
+          ...secondTeacher,
+          start: '10:30',
+          end: '11:30',
         });
 
-        // Two different groups try to use the same room.
         await assert.rejects(
-          lesson({
-            groupId: second.groupId,
-            roomId: first.roomId,
-            ...secondTeacher,
-            start: '10:30',
-            end: '11:30',
-            status: 'published',
-          }),
+          publishDay(second.groupId),
           {
             code: '23P01',
             constraint: 'kms_room_no_overlap',
@@ -396,23 +430,37 @@ test('Schedule SQL business logic', {
         const g = await group();
         const teacher = await teacherWithSubject();
 
+        await prepareDay(g.groupId);
+
         await lesson({
           ...g,
           ...teacher,
           start: '10:00',
           end: '11:00',
-          status: 'published',
         });
 
-        const result = await lesson({
+        await lesson({
           ...g,
           ...teacher,
           start: '11:00',
           end: '12:00',
-          status: 'published',
         });
 
-        assert.equal(result.rows[0].status, 'published');
+        await publishDay(g.groupId);
+
+
+
+        const result = await db.query(
+          `SELECT status FROM schedule
+           WHERE group_id = $1
+           ORDER BY start_time`,
+          [g.groupId]
+        );
+
+        assert.deepEqual(
+          result.rows.map((row) => row.status),
+          ['published', 'published']
+        );
       });
     });
 
@@ -421,11 +469,9 @@ test('Schedule SQL business logic', {
         const g = await group();
         const teacher = await teacherWithSubject();
 
-        await lesson({
-          ...g,
-          ...teacher,
-          status: 'published',
-        });
+        await prepareDay(g.groupId);
+        await lesson({ ...g, ...teacher });
+        await publishDay(g.groupId);
 
         await assert.rejects(
           db.query(
@@ -450,27 +496,15 @@ test('Schedule SQL business logic', {
         const g = await group();
         const teacher = await teacherWithSubject();
 
-        await db.query(
-          `INSERT INTO kms_daily_blocks
-             (group_id, block_date, kind, start_time, end_time)
-           VALUES (
-             $1, $2::date, 'meal',
-             $3::timestamptz, $4::timestamptz
-           )`,
-          [
-            g.groupId,
-            day,
-            `${day} 10:00+02`,
-            `${day} 10:30+02`,
-          ]
-        );
+        await prepareDay(g.groupId);
+        await publishDay(g.groupId);
 
         await assert.rejects(
           lesson({
             ...g,
             ...teacher,
-            start: '10:15',
-            end: '10:45',
+            start: '08:15',
+            end: '08:45',
             status: 'published',
           }),
           /KMS_LESSON_DAILY_BLOCK_CONFLICT/
@@ -526,19 +560,15 @@ test('Schedule SQL business logic', {
 
         assert.equal(await balanced(), true);
 
-        await lesson({
-          ...first,
-          ...firstTeacher,
-          status: 'published',
-        });
+        await prepareDay(first.groupId);
+        await lesson({ ...first, ...firstTeacher });
+        await publishDay(first.groupId);
 
         assert.equal(await balanced(), false);
 
-        await lesson({
-          ...second,
-          ...secondTeacher,
-          status: 'published',
-        });
+        await prepareDay(second.groupId);
+        await lesson({ ...second, ...secondTeacher });
+        await publishDay(second.groupId);
 
         assert.equal(await balanced(), true);
       });

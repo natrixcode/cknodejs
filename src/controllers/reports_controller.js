@@ -115,7 +115,7 @@ export async function getSalariesReport(req, res, next) {
 
 export async function getBreakEvenReport(req, res, next) {
   try {
-    const result = await service.getBreakEvenReport();
+    const result = await service.getBreakEvenReport(res.locals.breakEvenParams);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
