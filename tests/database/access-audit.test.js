@@ -460,35 +460,47 @@ test('Access control and audit SQL business logic', {
       );
     });
 
-    await scenario('9. Unrelated users cannot view invoice', async () => {
-      const f = await makeFixture();
+await scenario('9. Unrelated users cannot view invoice', async () => {
+  const f = await makeFixture();
 
-      const invoice = await db.query(
-        `SELECT *
-         FROM kms_issue_invoice(
-           $1, DATE '2026-10-01', 1, 5
-         )`,
-        [f.child1]
-      );
+  const invoice = await db.query(
+    `SELECT *
+     FROM kms_issue_invoice(
+       $1, DATE '2026-10-01', 1, 5
+     )`,
+    [f.child1]
+  );
 
-      const invoiceId = invoice.rows[0].id;
+  const invoiceId = invoice.rows[0].id;
 
-      for (const user of [
-        f.managerUser,
-        f.parentUser2,
-        f.employeeUser1,
-        f.regularUser,
-      ]) {
-        assert.equal(
-          await allowed(
-            'kms_can_view_invoice',
-            user,
-            invoiceId
-          ),
-          false
-        );
-      }
-    });
+  // Менеджер має право переглядати рахунки
+  // відповідно до міграції 0015.
+  assert.equal(
+    await allowed(
+      'kms_can_view_invoice',
+      f.managerUser,
+      invoiceId
+    ),
+    true
+  );
+
+  // Сторонні користувачі не мають доступу.
+  for (const user of [
+    f.parentUser2,
+    f.employeeUser1,
+    f.regularUser,
+  ]) {
+    assert.equal(
+      await allowed(
+        'kms_can_view_invoice',
+        user,
+        invoiceId
+      ),
+      false
+    );
+  }
+});
+
 
     await scenario('10. Blocked parent cannot view invoice', async () => {
       const f = await makeFixture();

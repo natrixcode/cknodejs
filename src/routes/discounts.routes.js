@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getDiscounts,
   getDiscountById,
@@ -15,7 +15,7 @@ import { discountSchema } from '../validators/discount_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 const updateDiscountSchema = z.strictObject({
   name: z.string().trim().min(2).max(100).optional(),
   percentage: z.union([

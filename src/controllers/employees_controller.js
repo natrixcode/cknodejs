@@ -2,7 +2,7 @@ import * as service from '../services/employees_service.js';
 
 export async function getEmployees(req, res, next) {
   try {
-    const result = await service.getEmployees();
+    const result = await service.getEmployees(req.user.role);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -16,7 +16,10 @@ export async function getEmployees(req, res, next) {
 
 export async function getEmployeeById(req, res, next) {
   try {
-    const result = await service.getEmployeeById(req.params.id);
+      const result = await service.getEmployeeById(
+      req.params.id,
+      req.user.role
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

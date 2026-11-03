@@ -1,3 +1,4 @@
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -6,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import request from 'supertest';
 import { Client } from 'pg';
+import { createSession } from '../../src/utils/sessions.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -53,11 +55,29 @@ test('Invoices, payments and finance reports HTTP integration', {
 
     const { default: app } = await import('../../src/app.js');
     const { pool } = await import('../../src/config/database.js');
+
     appPool = pool;
 
+    // Створюємо тестового адміністратора.
+    const adminUser = await pool.query(
+      `INSERT INTO users (username, password_hash, role)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [
+        `finance_admin_${randomUUID().slice(0, 8)}`,
+        'test-hash',
+        'admin',
+      ]
+    );
+
+    // Отримуємо токен адміністратора.
+    const adminToken = createSession(adminUser.rows[0].id).token;
+
+    // Авторизовані POST-запити.
     async function post(path, body, status = 201) {
       const response = await request(app)
         .post(`/api/v1${path}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(body);
 
       assert.equal(
@@ -69,9 +89,11 @@ test('Invoices, payments and finance reports HTTP integration', {
       return response.body.data;
     }
 
+    // Авторизовані GET-запити.
     async function get(path, query = {}) {
       const response = await request(app)
         .get(`/api/v1${path}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .query(query);
 
       assert.equal(
@@ -189,6 +211,7 @@ test('Invoices, payments and finance reports HTTP integration', {
     await t.test('Overlapping invoice for the same child is rejected', async () => {
       await request(app)
         .post('/api/v1/invoices')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           child_id: Number(regular.id),
           period_start: PERIOD,
@@ -260,6 +283,7 @@ test('Invoices, payments and finance reports HTTP integration', {
         Array.from({ length: 8 }, () =>
           request(app)
             .post('/api/v1/payments')
+            .set('Authorization', `Bearer ${adminToken}`)
             .send({
               invoice_id: Number(discountedInvoice.id),
               amount: 500,
@@ -287,6 +311,7 @@ test('Invoices, payments and finance reports HTTP integration', {
         Array.from({ length: 4 }, (_, i) =>
           request(app)
             .post('/api/v1/payments')
+            .set('Authorization', `Bearer ${adminToken}`)
             .send({
               invoice_id: Number(discountedInvoice.id),
               amount: 6000,

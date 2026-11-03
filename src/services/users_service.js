@@ -6,6 +6,9 @@ import {
   ok, fail, missing, rows, one
 } from './_common.js';
 
+import {
+  revokeUserSessions
+} from '../utils/sessions.js';
 const publicFields = `
   id, username, name, email,
   role, status, is_active,
@@ -105,7 +108,15 @@ export async function updateUser(id, data) {
     ]
   );
 
-  return user ? ok(user) : missing();
+  if (!user) {
+  return missing();
+}
+
+if (data.password !== undefined) {
+  revokeUserSessions(id);
+}
+
+return ok(user);
 }
 
 export async function updateUserRole(id, data) {
@@ -141,5 +152,13 @@ export async function updateUserStatus(id, data) {
     ]
   );
 
-  return user ? ok(user) : missing();
+  if (!user) {
+  return missing();
+}
+
+if (data.status !== 'active') {
+  revokeUserSessions(id);
+}
+
+return ok(user);
 }

@@ -549,49 +549,45 @@ test('Complete manual schedule HTTP scenario', {
       );
     });
 
-    await t.test(
-      'HTTP: edit published lesson without breaking routine',
-      async () => {
-        const updated = expectStatus(
-          await patch(`/schedule/${t.lessonId}`, {
-            start_time: at('09:30'),
-            end_time: at('10:30')
-          }),
-          200
-        );
+await t.test(
+  'HTTP: reject editing published lesson',
+  async () => {
+    const originalStart = at('10:00');
+    const originalEnd = at('11:00');
 
-        assert.equal(updated.status, 'published');
-
-        assert.equal(
-          new Date(updated.start_time).toISOString(),
-          new Date(at('09:30')).toISOString()
-        );
-
-        const restored = expectStatus(
-          await patch(`/schedule/${t.lessonId}`, {
-            start_time: at('10:00'),
-            end_time: at('11:00')
-          }),
-          200
-        );
-
-        assert.equal(restored.status, 'published');
-
-        const forbidden = await patch(
-          `/schedule/${t.lessonId}`,
-          {
-            start_time: at('12:00'),
-            end_time: at('12:30')
-          }
-        );
-
-        assert.equal(
-          forbidden.status,
-          422,
-          JSON.stringify(forbidden.body)
-        );
+    const response = await patch(
+      `/schedule/${t.lessonId}`,
+      {
+        start_time: at('09:30'),
+        end_time: at('10:30')
       }
     );
+
+    assert.equal(
+      response.status,
+      400,
+      JSON.stringify(response.body)
+    );
+
+    const unchanged = expectStatus(
+      await get(`/schedule/${t.lessonId}`),
+      200
+    );
+
+    assert.equal(unchanged.status, 'published');
+
+    assert.equal(
+      new Date(unchanged.start_time).toISOString(),
+      new Date(originalStart).toISOString()
+    );
+
+    assert.equal(
+      new Date(unchanged.end_time).toISOString(),
+      new Date(originalEnd).toISOString()
+    );
+  }
+);
+
 
     await t.test(
       'HTTP: move draft lesson to another date and group',
@@ -775,12 +771,11 @@ test('Complete manual schedule HTTP scenario', {
           }
         );
 
-        assert.equal(
-          outside.status,
-          422,
-          JSON.stringify(outside.body)
-        );
-
+       assert.equal(
+       outside.status,
+        400,
+       JSON.stringify(outside.body)
+      );
         const stillPublished = expectStatus(
           await get(`/schedule/${lesson.id}`),
           200

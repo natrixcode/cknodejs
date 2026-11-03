@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import request from 'supertest';
 import { Client } from 'pg';
+import { createSession } from '../../src/utils/sessions.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -18,8 +19,7 @@ test('Food and tuition calculation API integration', {
   skip: !process.env.MIGRATION_TEST_ADMIN_DB,
   timeout: 120000,
 }, async (t) => {
-  const dbName =
-    `cknodejs_api_test_${randomUUID().replaceAll('-', '')}`;
+  const dbName = `cknodejs_api_test_${randomUUID().replaceAll('-', '')}`;
 
   const admin = new Client({
     database: process.env.MIGRATION_TEST_ADMIN_DB,
@@ -49,14 +49,25 @@ test('Food and tuition calculation API integration', {
     const { pool } = await import('../../src/config/database.js');
     appPool = pool;
 
-    // Окреме підключення для перевірки тестової БД.
+    // Окреме підключення до тестової БД.
     db = new Client({ database: dbName });
     await db.connect();
+
+    // Створюємо тестового адміністратора.
+    const adminResult = await db.query(
+      `INSERT INTO users (username, password_hash, role)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      ['test_food_tuition_admin', 'test-only-password-hash', 'admin']
+    );
+
+    const { token } = createSession(adminResult.rows[0].id);
 
     await t.test('Food calculation', async (t) => {
       await t.test('calculates food cost and returns expected amount', async () => {
         const response = await request(app)
           .get('/api/v1/food/calculate')
+          .set('Authorization', `Bearer ${token}`)
           .query({
             age_years: 2,
             days: 1,
@@ -71,6 +82,7 @@ test('Food and tuition calculation API integration', {
       await t.test('returns 400 for invalid food parameters', async () => {
         const response = await request(app)
           .get('/api/v1/food/calculate')
+          .set('Authorization', `Bearer ${token}`)
           .query({
             age_years: 'invalid',
             days: 1,
@@ -89,6 +101,7 @@ test('Food and tuition calculation API integration', {
       await t.test('calculates tuition and returns expected amount', async () => {
         const response = await request(app)
           .get('/api/v1/tuition/calculate')
+          .set('Authorization', `Bearer ${token}`)
           .query({
             date: '2026-10-27',
             currency: 'UAH',
@@ -103,6 +116,7 @@ test('Food and tuition calculation API integration', {
       await t.test('returns 400 for unsupported currency', async () => {
         const response = await request(app)
           .get('/api/v1/tuition/calculate')
+          .set('Authorization', `Bearer ${token}`)
           .query({
             date: '2026-10-27',
             currency: 'GBP',
@@ -119,6 +133,7 @@ test('Food and tuition calculation API integration', {
       await t.test('returns 422 when SQL calculation does not support EUR', async () => {
         const response = await request(app)
           .get('/api/v1/tuition/calculate')
+          .set('Authorization', `Bearer ${token}`)
           .query({
             date: '2026-10-27',
             currency: 'EUR',
@@ -133,9 +148,7 @@ test('Food and tuition calculation API integration', {
     await db?.end();
 
     if (created && connected) {
-      await admin.query(
-        `DROP DATABASE "${dbName}" WITH (FORCE)`
-      );
+      await admin.query(`DROP DATABASE "${dbName}" WITH (FORCE)`);
     }
 
     if (connected) {

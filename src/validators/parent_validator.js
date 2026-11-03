@@ -10,3 +10,10 @@ export const parentSchema = z.strictObject({
 
   phone: z.string().trim().min(7).max(20),
 });
+export const parentContactSchema = z.strictObject({
+  email: z.email().max(100).optional(),
+  phone: z.string().trim().min(7).max(20).optional(),
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: 'At least one contact field is required' }
+);

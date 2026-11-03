@@ -6,6 +6,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { Client } from 'pg';
+import { createSession } from '../../src/utils/sessions.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -51,9 +52,20 @@ test('Children HTTP + PostgreSQL integration', {
 
      // Окреме підключення для перевірки даних у PostgreSQL
     db = new Client({ database: dbName });
-    await db.connect();
+await db.connect();
 
-    server = app.listen(0);
+// Створюємо тестового адміністратора
+const adminResult = await db.query(
+  `INSERT INTO users (username, password_hash, role)
+   VALUES ($1, $2, $3)
+   RETURNING id`,
+  ['test_api_admin', 'test-only-password-hash', 'admin']
+);
+
+// Створюємо сесію адміністратора
+const { token } = createSession(adminResult.rows[0].id);
+
+server = app.listen(0);
 
     await new Promise((resolve) => {
       server.once('listening', resolve);
@@ -66,8 +78,9 @@ test('Children HTTP + PostgreSQL integration', {
       const response = await fetch(`${baseUrl}${path}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-        },
+        'Content-Type': 'application/json',
+         Authorization: `Bearer ${token}`,
+      },
         body: JSON.stringify(body),
       });
 

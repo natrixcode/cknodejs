@@ -573,7 +573,114 @@ test('Schedule SQL business logic', {
         assert.equal(await balanced(), true);
       });
     });
+await t.test('15. Reject update of published lesson', async () => {
+  await rollback(async () => {
+    const g = await group();
+    const teacher = await teacherWithSubject();
 
+    // Спочатку готуємо повний день.
+    await prepareDay(g.groupId);
+
+    // Створюємо заняття у статусі draft.
+    const result = await lesson({
+      ...g,
+      ...teacher,
+    });
+
+    const scheduleId = result.rows[0].id;
+
+    // Публікуємо день через SQL-функцію.
+    await publishDay(g.groupId);
+
+    // Перевіряємо заборону зміни опублікованого заняття.
+    await assert.rejects(
+      db.query(
+        `UPDATE schedule
+         SET start_time = start_time + INTERVAL '1 minute'
+         WHERE id = $1`,
+        [scheduleId]
+      ),
+      /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+    );
+  });
+});
+
+await t.test('16. Reject delete of published lesson', async () => {
+  await rollback(async () => {
+    const g = await group();
+    const teacher = await teacherWithSubject();
+
+    // Готуємо повний день.
+    await prepareDay(g.groupId);
+
+    // Створюємо заняття у статусі draft.
+    const result = await lesson({
+      ...g,
+      ...teacher,
+    });
+
+    const scheduleId = result.rows[0].id;
+
+    // Публікуємо день.
+    await publishDay(g.groupId);
+
+    // Перевіряємо заборону видалення опублікованого заняття.
+    await assert.rejects(
+      db.query(
+        'DELETE FROM schedule WHERE id = $1',
+        [scheduleId]
+      ),
+      /KMS_PUBLISHED_SCHEDULE_IMMUTABLE/
+    );
+  });
+});
+
+      await t.test('17. Employee teacher can view only assigned lessons', async () => {
+      await rollback(async () => {
+        const g = await group(false);
+        const ownTeacher = await teacherWithSubject();
+        const otherTeacher = await teacherWithSubject();
+
+        const ownLesson = await lesson({
+          ...g,
+          ...ownTeacher,
+        });
+
+        const otherLesson = await lesson({
+          ...g,
+          ...otherTeacher,
+          start: '12:00',
+          end: '13:00',
+        });
+
+        const userResult = await db.query(
+          `INSERT INTO users
+             (username, password_hash, role, employee_id)
+           VALUES ($1, $2, 'employee', $3)
+           RETURNING id`,
+          [
+            `schedule_teacher_${++counter}`,
+            'test-only-password-hash',
+            ownTeacher.teacherId,
+          ]
+        );
+
+        const userId = userResult.rows[0].id;
+
+        const ownAccess = await db.query(
+          `SELECT kms_can_view_schedule($1, $2) AS allowed`,
+          [userId, ownLesson.rows[0].id]
+        );
+
+        const otherAccess = await db.query(
+          `SELECT kms_can_view_schedule($1, $2) AS allowed`,
+          [userId, otherLesson.rows[0].id]
+        );
+
+        assert.equal(ownAccess.rows[0].allowed, true);
+        assert.equal(otherAccess.rows[0].allowed, false);
+      });
+    });
   } finally {
     try {
       await db?.end();

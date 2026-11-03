@@ -1,5 +1,5 @@
 import { Router } from 'express';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getFoodRates,
   createFoodRate,
@@ -16,7 +16,7 @@ import {
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
-
+router.use(requireRole('admin'));
 router.get('/rates', getFoodRates);
 
 router.post(

@@ -1,7 +1,10 @@
-import { requireAuth, requireRole } from '../middleware/auth.js';
 
 import { Router } from 'express';
 import { z } from 'zod';
+
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
+import { validateBody } from '../middleware/validate.js';
 
 import {
   getSchedules,
@@ -15,12 +18,10 @@ import {
 } from '../controllers/schedule_controller.js';
 
 import { scheduleSchema } from '../validators/schedule_validator.js';
-import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole('admin'));
 
 const idSchema = z.union([
   z.number().int().positive().safe(),
@@ -38,7 +39,7 @@ const schedulePatchSchema = z.strictObject({
   end_time: z.iso.datetime({ offset: true }).optional()
 }).refine(
   data => Object.keys(data).length > 0,
-  { message: 'Потрібно передати хоча б одне поле' }
+  { message: 'At least one field is required' }
 ).refine(
   data =>
     !data.start_time ||
@@ -46,25 +47,16 @@ const schedulePatchSchema = z.strictObject({
     Date.parse(data.end_time) > Date.parse(data.start_time),
   {
     path: ['end_time'],
-    message: 'Завершення повинно бути пізніше початку'
+    message: 'End time must be later than start time'
   }
 );
 
 const validateScheduleSchema = z.strictObject({
   group_id: z.number().int().positive(),
-
   teacher_id: z.number().int().positive(),
-
   room_id: z.number().int().positive(),
-
-  start_time: z.iso.datetime({
-    offset: true
-  }),
-
-  end_time: z.iso.datetime({
-    offset: true
-  }),
-
+  start_time: z.iso.datetime({ offset: true }),
+  end_time: z.iso.datetime({ offset: true }),
   exclude_id: idSchema.optional()
 }).refine(
   data => Date.parse(data.end_time) > Date.parse(data.start_time),
@@ -79,52 +71,72 @@ const publishScheduleSchema = z.strictObject({
     .min(1)
     .refine(
       ids => new Set(ids).size === ids.length,
-      {
-        message: 'Duplicate schedule IDs'
-      }
+      { message: 'Duplicate schedule IDs' }
     ),
 
   day_start: z.string()
     .regex(
       /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/,
-      'Час початку дня повинен бути у форматі HH:MM або HH:MM:SS'
+      'Day start must use HH:MM or HH:MM:SS'
     )
     .default('08:00')
 });
 
-router.get('/', getSchedules);
+
+router.get(
+  '/',
+  requireRole('admin', 'manager'),
+  getSchedules
+);
+
+router.get(
+  '/:id',
+  requireRole('admin', 'manager', 'teacher', 'employee', 'parent'),
+  requireScheduleAccess,
+  getScheduleById
+);
+
 
 router.post(
   '/generate',
+  requireRole('admin', 'manager'),
   generateSchedule
 );
 
 router.post(
   '/validate',
+  requireRole('admin', 'manager'),
   validateBody(validateScheduleSchema),
   validateSchedule
 );
 
+
 router.post(
   '/publish',
+  requireRole('admin'),
   validateBody(publishScheduleSchema),
   publishSchedule
 );
 
-router.get('/:id', getScheduleById);
 
 router.post(
   '/',
+  requireRole('admin', 'manager'),
   validateBody(scheduleSchema),
   createSchedule
 );
 
 router.patch(
   '/:id',
+  requireRole('admin', 'manager'),
   validateBody(schedulePatchSchema),
   updateSchedule
 );
 
-router.delete('/:id', deleteSchedule);
+router.delete(
+  '/:id',
+  requireRole('admin', 'manager'),
+  deleteSchedule
+);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-
+import { requireRole } from '../middleware/auth.js';
 import {
   getGroups,
   getGroupById,
@@ -22,6 +22,7 @@ import { validateBody } from '../middleware/validate.js';
 import { z } from 'zod';
 
 const router = Router();
+router.use(requireRole('admin', 'manager'));
 const groupStatusSchema = z.strictObject({
   status: z.enum(['active', 'inactive'])
 });
@@ -58,7 +59,7 @@ router.post(
 router.delete('/:id/employees/:employeeId', removeGroupEmployee);
 
 router.get('/:id/schedule', getGroupSchedule);
-router.get('/:id/finance', getGroupFinance);
+router.get('/:id/finance', requireRole('admin'), getGroupFinance);
 router.get('/:id/capacity', getGroupCapacity);
 
 export default router;

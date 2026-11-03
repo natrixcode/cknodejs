@@ -1,5 +1,7 @@
+
 import { Router } from 'express';
 import { z } from 'zod';
+import { requireRole } from '../middleware/auth.js';
 
 import {
   getFinanceReport,
@@ -17,8 +19,10 @@ import { breakEvenQuerySchema } from '../validators/break_even_validator.js';
 
 const router = Router();
 
-// Break-even має власні параметри сценарію, а не звітний період,
-// тому реєструється до спільної перевірки дат.
+// Access Control: financial reports are available only to Admin.
+router.use(requireRole('admin'));
+
+// Break-even uses its own query parameters.
 router.get('/break-even', (req, res, next) => {
   const parsed = breakEvenQuerySchema.safeParse(req.query);
 

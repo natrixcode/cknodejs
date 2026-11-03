@@ -49,3 +49,16 @@ export function revokeSession(token) {
 
   return sessions.delete(hashToken(token));
 }
+export function revokeUserSessions(userId) {
+  const id = String(userId);
+  let revoked = 0;
+
+  for (const [key, session] of sessions.entries()) {
+    if (session.userId === id) {
+      sessions.delete(key);
+      revoked++;
+    }
+  }
+
+  return revoked;
+}
