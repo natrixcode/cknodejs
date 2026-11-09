@@ -63,9 +63,9 @@ export async function updateSchedule(id, data) {
 export async function deleteSchedule(id) {
   const removed = await one(
     `DELETE FROM schedule
-     WHERE id = $1 AND status = $2
+     WHERE id = $1
      RETURNING id`,
-    [id, 'draft']
+    [id]
   );
 
   return removed

@@ -407,8 +407,6 @@ const [admin, firstParent, secondParent, manager] = users.rows;
     }
 
     console.log('PASS: Invalid route IDs return 400 without exposing SQL or stack traces');
-    console.log('PASS: Invalid route IDs return 400 without exposing SQL or stack traces');
-
   } finally {
     for (const token of tokens) {
       revokeSession(token);

@@ -585,6 +585,24 @@ await t.test(
       new Date(unchanged.end_time).toISOString(),
       new Date(originalEnd).toISOString()
     );
+
+        const deleteResponse = await del(
+      `/schedule/${t.lessonId}`
+    );
+
+    assert.equal(
+      deleteResponse.status,
+      422,
+      JSON.stringify(deleteResponse.body)
+    );
+
+    const stillPublished = expectStatus(
+      await get(`/schedule/${t.lessonId}`),
+      200
+    );
+
+    assert.equal(stillPublished.status, 'published');
+
   }
 );
 

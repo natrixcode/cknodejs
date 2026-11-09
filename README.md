@@ -240,6 +240,13 @@ docker compose exec server npm run check
 `npm install` (у PowerShell за блокування `npm.ps1` використайте
 `npm.cmd install`), після чого перебудуйте образ.
 
+### Перевірка безпеки залежностей
+
+За результатами `npm audit` виявлено 3 помірні вразливості в ланцюжку
+залежностей для розробки. Перевірка `npm audit --omit=dev` не виявила
+вразливостей у production-залежностях. Команду `npm audit fix --force`
+не застосовували, оскільки вона може спричинити несумісне оновлення ESLint.
+
 ### Якщо порт зайнятий або запуск не вдався
 
 Якщо Docker повідомляє `port is already allocated` чи `address already in use`,
