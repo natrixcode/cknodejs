@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getFinanceReport,
@@ -18,6 +19,7 @@ import {
 import { breakEvenQuerySchema } from '../validators/break_even_validator.js';
 
 const router = Router();
+router.param('groupId', validateRouteId);
 
 // Access Control: financial reports are available only to Admin.
 router.use(requireRole('admin'));

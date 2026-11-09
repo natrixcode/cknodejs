@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
 import { requireParentAccess } from '../middleware/parentAccess.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import { parentSchema } from '../validators/parent_validator.js';
 import {
   getParents,
@@ -18,6 +19,7 @@ import {
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+router.param('id', validateRouteId);
 router.get('/', requireRole('admin', 'manager'), getParents);
 
 router.get(

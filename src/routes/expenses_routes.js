@@ -1,18 +1,21 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   getExpenses,
   getExpenseById,
   createExpense,
-  updateExpense,
-  cancelExpense
+  updateExpense
 } from '../controllers/expenses_controller.js';
 
 import { expenseSchema } from '../validators/expense_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
+
 router.use(requireRole('admin'));
 const updateExpenseSchema = z.strictObject({
   name: z.string().trim().min(2).max(150).optional(),
@@ -40,6 +43,5 @@ router.patch(
   validateBody(updateExpenseSchema),
   updateExpense
 );
-router.post('/:id/cancel', cancelExpense);
 
 export default router;

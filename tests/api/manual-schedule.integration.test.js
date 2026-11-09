@@ -565,7 +565,7 @@ await t.test(
 
     assert.equal(
       response.status,
-      400,
+      422,
       JSON.stringify(response.body)
     );
 
@@ -773,7 +773,7 @@ await t.test(
 
        assert.equal(
        outside.status,
-        400,
+        422,
        JSON.stringify(outside.body)
       );
         const stillPublished = expectStatus(

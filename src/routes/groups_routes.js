@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   getGroups,
   getGroupById,
@@ -22,6 +23,11 @@ import { validateBody } from '../middleware/validate.js';
 import { z } from 'zod';
 
 const router = Router();
+
+router.param('id', validateRouteId);
+router.param('childId', validateRouteId);
+router.param('employeeId', validateRouteId);
+
 router.use(requireRole('admin', 'manager'));
 const groupStatusSchema = z.strictObject({
   status: z.enum(['active', 'inactive'])

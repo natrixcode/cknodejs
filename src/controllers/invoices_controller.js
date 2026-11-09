@@ -42,19 +42,6 @@ export async function createInvoice(req, res, next) {
   }
 }
 
-export async function recalculateInvoice(req, res, next) {
-  try {
-    const result = await service.recalculateInvoice(req.params.id);
-
-    if (result.noContent) {
-      return res.sendStatus(result.status);
-    }
-
-    return res.status(result.status).json(result.body);
-  } catch (error) {
-    next(error);
-  }
-}
 
 export async function getInvoiceItems(req, res, next) {
   try {
