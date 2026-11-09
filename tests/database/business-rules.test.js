@@ -383,7 +383,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /7 applied, 11 already applied/
+          /8 applied, 11 already applied/
         );
 
         assert.deepEqual(
@@ -400,7 +400,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          /0 applied, 19 already applied/
         );
 
         await st.test(
@@ -438,7 +438,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /18 applied, 0 already applied/
+          /19 applied, 0 already applied/
         );
 
         const before = (
@@ -449,7 +449,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          /0 applied, 19 already applied/
         );
 
         assert.deepEqual(

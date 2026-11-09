@@ -1,4 +1,4 @@
-
+﻿
 import assert from 'node:assert/strict';
 import app from '../../src/app.js';
 import { pool } from '../../src/config/database.js';
@@ -263,7 +263,7 @@ const [admin, firstParent, secondParent, manager] = users.rows;
         token: tokens[1],
         expected: 403
       },
-      
+
       {
         name: 'Admin can view invoice',
         method: 'GET',
@@ -334,6 +334,79 @@ const [admin, firstParent, secondParent, manager] = users.rows;
 
       console.log(`PASS: ${item.name}`);
     }
+
+
+    // Invalid numeric route IDs must return 400, never 500.
+    const invalidIds = [
+      'abc',
+      '-1',
+      '9223372036854775808'
+    ];
+
+    const numericIdRoutes = [
+      { method: 'GET', path: '/children/:id' },
+      { method: 'GET', path: '/daily-blocks/:id' },
+
+      { method: 'GET', path: '/discounts/:id' },
+      { method: 'GET', path: '/discounts/:childId/discounts' },
+      { method: 'DELETE', path: '/discounts/1/discounts/:discountId' },
+
+      { method: 'GET', path: '/employees/:id' },
+      { method: 'GET', path: '/expenses/:id' },
+      { method: 'PATCH', path: '/food/rates/:id' },
+
+      { method: 'GET', path: '/groups/:id' },
+      { method: 'DELETE', path: '/groups/1/children/:childId' },
+      { method: 'DELETE', path: '/groups/1/employees/:employeeId' },
+
+      { method: 'GET', path: '/invoices/:id' },
+      { method: 'GET', path: '/parents/:id' },
+
+      { method: 'GET', path: '/payments/:id' },
+      { method: 'GET', path: '/payments/:invoiceId/payments' },
+
+      { method: 'GET', path: '/reports/profit/groups/:groupId' },
+      { method: 'GET', path: '/rooms/:id' },
+
+      { method: 'GET', path: '/salaries/:id' },
+      { method: 'GET', path: '/salaries/:employeeId/salaries' },
+
+      { method: 'GET', path: '/schedule/:id' },
+      { method: 'GET', path: '/subjects/:id' },
+      { method: 'GET', path: '/tuition/rates/:id' },
+      { method: 'GET', path: '/users/:id' }
+    ];
+
+    for (const route of numericIdRoutes) {
+      for (const invalidId of invalidIds) {
+        const path = route.path.replace(
+          /:[a-zA-Z][a-zA-Z0-9]*/,
+          invalidId
+        );
+
+        const response = await request(
+          route.method,
+          path,
+          tokens[0]
+        );
+
+        const responseText = await response.text();
+
+        assert.equal(
+          response.status,
+          400,
+          `${route.method} ${path}: expected 400 for invalid ID "${invalidId}", got ${response.status}. Response: ${responseText}`
+        );
+
+        assert.doesNotMatch(
+          responseText,
+          /stack trace|syntax error|postgres|select\s+|insert\s+|update\s+|delete\s+/i,
+          `${path}: response must not expose SQL details or stack traces`
+        );
+      }
+    }
+
+    console.log('PASS: Invalid route IDs return 400 without exposing SQL or stack traces');
   } finally {
     for (const token of tokens) {
       revokeSession(token);

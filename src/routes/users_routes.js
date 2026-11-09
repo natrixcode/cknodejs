@@ -16,8 +16,12 @@ import {
 
 import { userSchema } from '../validators/users_validator.js';
 import { validateBody } from '../middleware/validate.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
+
 router.use(requireAuth);
 router.use(requireRole('admin'));
 

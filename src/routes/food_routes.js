@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   getFoodRates,
   createFoodRate,
@@ -16,6 +17,9 @@ import {
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
+
 router.use(requireRole('admin'));
 router.get('/rates', getFoodRates);
 

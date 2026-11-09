@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   getRooms,
   getRoomById,
@@ -14,6 +15,9 @@ import { roomSchema } from '../validators/room_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
+
 router.use(requireRole('admin'));
 const roomStatusSchema = z.strictObject({
   status: z.enum([
