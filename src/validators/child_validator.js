@@ -23,6 +23,10 @@ export const createChildSchema = z.strictObject({
 export const updateChildSchema =
   createChildSchema.partial();
 
+export const archiveChildSchema = z.strictObject({
+  reason: z.string().trim().max(500).optional(),
+});
+
 export const childIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });

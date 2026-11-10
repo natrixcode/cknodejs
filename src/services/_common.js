@@ -1,6 +1,27 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { pool } from '../config/database.js';
 
 export { pool };
+
+export const actorContext = new AsyncLocalStorage();
+
+export async function withActor(work, actorId = actorContext.getStore()) {
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    if (actorId) {
+      await db.query("SELECT set_config('kms.actor_user_id', $1, true)", [String(actorId)]);
+    }
+    const result = await work(db);
+    await db.query('COMMIT');
+    return result;
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  } finally {
+    db.release();
+  }
+}
 
 export const ok = (data, status = 200) => ({
   status,
@@ -54,6 +75,20 @@ export async function create(table, data, allowed) {
     .map((_, i) => `$${i + 1}`)
     .join(', ');
 
+  const actorId = actorContext.getStore();
+  if (actorId) {
+    return withActor(async (client) => {
+      const item = await one(
+        `INSERT INTO ${table} (${keys.join(', ')})
+         VALUES (${placeholders})
+         RETURNING *`,
+        keys.map(key => data[key]),
+        client
+      );
+      return ok(item, 201);
+    }, actorId);
+  }
+
   const item = await one(
     `INSERT INTO ${table} (${keys.join(', ')})
      VALUES (${placeholders})
@@ -77,6 +112,21 @@ export async function patch(table, id, data, allowed) {
     .map((key, i) => `${key} = $${i + 1}`)
     .join(', ');
 
+  const actorId = actorContext.getStore();
+  if (actorId) {
+    return withActor(async (client) => {
+      const item = await one(
+        `UPDATE ${table}
+         SET ${assignments}
+         WHERE id = $${keys.length + 1}
+         RETURNING *`,
+        [...keys.map(key => data[key]), id],
+        client
+      );
+      return item ? ok(item) : missing();
+    }, actorId);
+  }
+
   const item = await one(
     `UPDATE ${table}
      SET ${assignments}
@@ -88,11 +138,14 @@ export async function patch(table, id, data, allowed) {
   return item ? ok(item) : missing();
 }
 
-export async function transaction(work) {
+export async function transaction(work, actorId = actorContext.getStore()) {
   const db = await pool.connect();
 
   try {
     await db.query('BEGIN');
+    if (actorId) {
+      await db.query("SELECT set_config('kms.actor_user_id', $1, true)", [String(actorId)]);
+    }
 
     const result = await work(db);
 

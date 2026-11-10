@@ -1,5 +1,5 @@
 import {
-  ok, list, byId, create, patch, rows
+  ok, list, byId, create, patch, rows, one, missing
 } from './_common.js';
 
 const fields = [
@@ -11,7 +11,21 @@ const fields = [
   'notes'
 ];
 
-export const getChildren = () => list('children');
+export async function getChildren(query = {}) {
+  const includeArchived = query.archived === 'true' || query.status === 'archived';
+  const showAll = query.status === 'all';
+
+  let sql = 'SELECT * FROM children';
+  if (showAll) {
+    sql += ' ORDER BY id';
+  } else if (includeArchived) {
+    sql += " WHERE status = 'archived' ORDER BY id";
+  } else {
+    sql += " WHERE status = 'active' ORDER BY id";
+  }
+
+  return ok(await rows(sql));
+}
 
 export const getChildById = id =>
   byId('children', id);
@@ -21,6 +35,22 @@ export const createChild = data =>
 
 export const updateChild = (id, data) =>
   patch('children', id, data, fields);
+
+export async function archiveChild(id, reason = null) {
+  const result = await one(
+    'SELECT * FROM kms_archive_child($1, $2)',
+    [id, reason]
+  );
+  return result ? ok(result) : missing();
+}
+
+export async function unarchiveChild(id) {
+  const result = await one(
+    'SELECT * FROM kms_unarchive_child($1)',
+    [id]
+  );
+  return result ? ok(result) : missing();
+}
 
 export async function getChildParents(id) {
   return ok(
