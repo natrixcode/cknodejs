@@ -25,6 +25,7 @@ import settingsRouter from './routes/settings_routes.js';
 import subjectsRouter from './routes/subjects_routes.js';
 import tuitionRouter from './routes/tuition_routes.js';
 import usersRouter from './routes/users_routes.js';
+import attendanceRouter from './routes/attendance_routes.js';
 
 const app = express();
 const API_PREFIX = '/api/v1';
@@ -55,7 +56,7 @@ app.use(`${API_PREFIX}/settings`, requireAuth, settingsRouter);
 app.use(`${API_PREFIX}/subjects`, requireAuth, subjectsRouter);
 app.use(`${API_PREFIX}/tuition`, requireAuth, tuitionRouter);
 app.use(`${API_PREFIX}/users`, requireAuth, usersRouter);
-
+app.use(`${API_PREFIX}/attendance`, requireAuth, attendanceRouter);
 
 app.use(notFound);
 app.use(errorHandler);
