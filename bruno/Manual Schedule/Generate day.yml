@@ -1,0 +1,18 @@
+info:
+  name: Generate day
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/schedule/generate
+  body:
+    type: json
+    data: |-
+      {
+        "group_id": {{group_id}},
+        "date": "{{schedule_date}}"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"

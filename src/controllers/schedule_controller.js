@@ -72,7 +72,7 @@ export async function deleteSchedule(req, res, next) {
 
 export async function generateSchedule(req, res, next) {
   try {
-    const result = await service.generateSchedule();
+    const result = await service.generateSchedule(req.body);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
