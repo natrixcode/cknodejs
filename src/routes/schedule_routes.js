@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
 import { validateBody } from '../middleware/validate.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getSchedules,
@@ -20,6 +21,8 @@ import {
 import { scheduleSchema, generateScheduleSchema } from '../validators/schedule_validator.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
 
 router.use(requireAuth);
 

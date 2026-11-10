@@ -2,6 +2,7 @@
 import { Router } from 'express';
 
 import { requireRole } from '../middleware/auth.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   requireInvoiceAccess,
   requirePaymentAccess
@@ -18,6 +19,8 @@ import { paymentSchema } from '../validators/payment_validator.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+router.param('id', validateRouteId);
+router.param('invoiceId', validateRouteId);
 router.get('/', requireRole('admin', 'manager'), getPayments);
 
 router.get(

@@ -55,17 +55,3 @@ export async function updateExpense(req, res, next) {
     next(error);
   }
 }
-
-export async function cancelExpense(req, res, next) {
-  try {
-    const result = await service.cancelExpense(req.params.id);
-
-    if (result.noContent) {
-      return res.sendStatus(result.status);
-    }
-
-    return res.status(result.status).json(result.body);
-  } catch (error) {
-    next(error);
-  }
-}

@@ -69,28 +69,30 @@ test('Salaries SQL business logic', {
       return Number(Object.values(result.rows[0])[0]);
     }
 
-    async function createEmployee(
-      position = 'teacher',
-      status = 'active'
-    ) {
-      const n = ++counter;
+   async function createEmployee(
+  position = 'teacher',
+  status = 'active',
+  salaryAmount = 10000
+) {
+  const n = ++counter;
 
-      const result = await db.query(
-        `INSERT INTO employees
-          (first_name, last_name, phone,
-           position, salary, status)
-         VALUES ('Test', $1, $2, $3, 10000, $4)
-         RETURNING id`,
-        [
-          `Employee${n}`,
-          `38050${String(n).padStart(7, '0')}`,
-          position,
-          status,
-        ]
-      );
+  const result = await db.query(
+    `INSERT INTO employees
+      (first_name, last_name, phone,
+       position, salary, status)
+     VALUES ('Test', $1, $2, $3, $4, $5)
+     RETURNING id`,
+    [
+      `Employee${n}`,
+      `38050${String(n).padStart(7, '0')}`,
+      position,
+      salaryAmount,
+      status,
+    ]
+  );
 
-      return result.rows[0].id;
-    }
+  return result.rows[0].id;
+}
 
     async function createGroup() {
       const n = ++counter;
@@ -339,16 +341,28 @@ test('Salaries SQL business logic', {
       );
     });
 
-    await scenario('15. Reject unsupported employee position', async () => {
-      const employeeId = await createEmployee('cook');
+       await scenario('15. Calculate fixed salaries for director, cook, nurse and accountant', async () => {
+      const positions = [
+        'director',
+        'cook',
+        'nurse',
+        'accountant',
+      ];
 
-      await assert.rejects(
-        db.query(
-          'SELECT kms_calculate_employee_salary($1)',
-          [employeeId]
-        ),
-        /KMS_SALARY_RULE_NOT_DEFINED/
-      );
+      for (const position of positions) {
+        const expectedSalary = 15000;
+        const employeeId = await createEmployee(
+          position,
+          'active',
+          expectedSalary
+        );
+
+        assert.equal(
+          await salary(employeeId),
+          expectedSalary,
+          `${position} should receive the salary from employees.salary`
+        );
+      }
     });
 
     await scenario('16. Reject nonexistent employee', async () => {

@@ -78,6 +78,7 @@ const businessErrors = {
   KMS_GROUP_REQUIRES_EDUCATOR_AND_ASSISTANT: 409,
   KMS_GROUP_NOT_ACTIVE: 422,
   KMS_TEACHER_SUBJECT_MISMATCH: 422,
+  KMS_PUBLISHED_SCHEDULE_IMMUTABLE: 422,
   KMS_BLOCK_LESSON_CONFLICT: 422,
   KMS_CONSECUTIVE_MEALS: 422,
   KMS_LESSON_DAILY_BLOCK_CONFLICT: 422,
@@ -140,11 +141,13 @@ export function errorHandler(error, req, res, next) {
   let status = 500;
   let message = 'Внутрішня помилка сервера';
 
-  if (
-    sqlCode === 'P0001' &&
-    typeof sqlMessage === 'string' &&
-    Object.hasOwn(businessErrors, sqlMessage)
-  ) {
+ if (
+  typeof sqlMessage === 'string' &&
+  Object.hasOwn(businessErrors, sqlMessage) &&
+  (sqlCode === 'P0001' ||
+    (sqlCode === '23514' &&
+      sqlMessage === 'KMS_PUBLISHED_SCHEDULE_IMMUTABLE'))
+) {
     status = businessErrors[sqlMessage];
     message = sqlMessage;
    } else if (

@@ -83,11 +83,6 @@ export async function createInvoice(data) {
   );
 }
 
-export const recalculateInvoice = () =>
-  fail(
-    409,
-    'Виставлений рахунок не можна перерахувати; SQL-функції для перерахунку чернетки немає'
-  );
 
 export async function getInvoiceItems(id) {
   const invoice = await one(
