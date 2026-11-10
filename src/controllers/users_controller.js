@@ -59,7 +59,7 @@ export async function updateUser(req, res, next) {
 export async function updateUserRole(req, res, next) {
   try {
     if (String(req.user.id) === String(req.params.id)) {
-      return res.status(403).json({
+      return res.status(409).json({
         message: 'You cannot change your own role'
       });
     }
@@ -78,13 +78,14 @@ export async function updateUserRole(req, res, next) {
     next(error);
   }
 }
+
 export async function updateUserStatus(req, res, next) {
   try {
     if (
       String(req.user.id) === String(req.params.id) &&
       req.body.status !== 'active'
     ) {
-      return res.status(403).json({
+      return res.status(409).json({
         message: 'You cannot deactivate your own account'
       });
     }

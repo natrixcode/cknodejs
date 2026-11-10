@@ -383,7 +383,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /7 applied, 11 already applied/
+          /15 applied, 11 already applied/
         );
 
         assert.deepEqual(
@@ -400,7 +400,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          /0 applied, 26 already applied/
         );
 
         await st.test(
@@ -438,7 +438,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /18 applied, 0 already applied/
+          /26 applied, 0 already applied/
         );
 
         const before = (
@@ -449,7 +449,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          /0 applied, 26 already applied/
         );
 
         assert.deepEqual(
@@ -470,6 +470,7 @@ test(
     );
   }
 );
+
 
 async function regression(t, c, f) {
   await t.test(
@@ -492,22 +493,19 @@ async function regression(t, c, f) {
       assert.equal(await allowed(-1), false);
 
       await rollback(c, async () => {
-        await c.query(
-          "UPDATE users SET role = 'teacher' WHERE id = $1",
-          [f.user]
-        );
-
-        assert.equal(await allowed(f.user), true);
-        assert.equal(
-          await allowed(f.user, f.otherLesson),
-          false
+        await assert.rejects(
+          c.query(
+            "UPDATE users SET role = 'teacher' WHERE id = $1",
+            [f.user]
+          ),
+          /KMS_INVALID_USER_ROLE/
         );
       });
 
-      for (const user of [
-        f.user,
-        ...f.admins
-      ]) {
+      assert.equal(await allowed(f.user), true);
+      assert.equal(await allowed(f.user, f.otherLesson), false);
+
+      for (const user of [f.user, ...f.admins]) {
         assert.equal(await allowed(user), true);
 
         for (const change of [
@@ -517,16 +515,27 @@ async function regression(t, c, f) {
           'is_active=false'
         ]) {
           await rollback(c, async () => {
-            await c.query(
-              `UPDATE users SET ${change} WHERE id=$1`,
-              [user]
-            );
+            if (user === f.admins[0]) {
+              await assert.rejects(
+                c.query(
+                  `UPDATE users SET ${change} WHERE id=$1`,
+                  [user]
+                ),
+                /KMS_ADMIN_IMMUTABLE/
+              );
+            } else {
+              await c.query(
+                `UPDATE users SET ${change} WHERE id=$1`,
+                [user]
+              );
 
-            assert.equal(
-              await allowed(user),
-              false
-            );
+              assert.equal(await allowed(user), false);
+            }
           });
+
+          if (user === f.admins[0]) {
+            assert.equal(await allowed(user), true);
+          }
         }
       }
 
@@ -558,6 +567,7 @@ async function regression(t, c, f) {
       }
     }
   );
+
 
   for (const [label, sql, error] of [
     [

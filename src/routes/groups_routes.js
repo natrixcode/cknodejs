@@ -1,5 +1,10 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { requireRole } from '../middleware/auth.js';
+import { requireGroupChildrenAccess } from '../middleware/groupChildrenAccess.js';
+import { validateBody } from '../middleware/validate.js';
+
 import {
   getGroups,
   getGroupById,
@@ -18,11 +23,9 @@ import {
 } from '../controllers/groups_controller.js';
 
 import { groupSchema } from '../validators/group_validator.js';
-import { validateBody } from '../middleware/validate.js';
-import { z } from 'zod';
 
 const router = Router();
-router.use(requireRole('admin', 'manager'));
+
 const groupStatusSchema = z.strictObject({
   status: z.enum(['active', 'inactive'])
 });
@@ -36,30 +39,80 @@ const addGroupEmployeeSchema = z.strictObject({
   role: z.enum(['educator', 'assistant'])
 });
 
+router.get(
+  '/:id/children',
+  requireRole('admin', 'manager', 'employee'),
+  requireGroupChildrenAccess,
+  getGroupChildren
+);
+
+router.get(
+  '/:id/schedule',
+  requireRole('admin', 'manager', 'employee'),
+  requireGroupChildrenAccess,
+  getGroupSchedule
+);
+
+router.use(requireRole('admin', 'manager'));
+
 router.get('/', getGroups);
+
 router.get('/:id', getGroupById);
-router.post('/', validateBody(groupSchema), createGroup);
-router.patch('/:id', validateBody(groupSchema.partial()), updateGroup);
+
+router.post(
+  '/',
+  validateBody(groupSchema),
+  createGroup
+);
+
+router.patch(
+  '/:id',
+  validateBody(groupSchema.partial()),
+  updateGroup
+);
+
 router.patch(
   '/:id/status',
   validateBody(groupStatusSchema),
   updateGroupStatus
 );
 
-router.get('/:id/children', getGroupChildren);
-router.post('/:id/children', validateBody(addGroupChildSchema), addGroupChild);
-router.delete('/:id/children/:childId', removeGroupChild);
+router.post(
+  '/:id/children',
+  validateBody(addGroupChildSchema),
+  addGroupChild
+);
 
-router.get('/:id/employees', getGroupEmployees);
+router.delete(
+  '/:id/children/:childId',
+  removeGroupChild
+);
+
+router.get(
+  '/:id/employees',
+  getGroupEmployees
+);
+
 router.post(
   '/:id/employees',
   validateBody(addGroupEmployeeSchema),
   addGroupEmployee
 );
-router.delete('/:id/employees/:employeeId', removeGroupEmployee);
 
-router.get('/:id/schedule', getGroupSchedule);
-router.get('/:id/finance', requireRole('admin'), getGroupFinance);
-router.get('/:id/capacity', getGroupCapacity);
+router.delete(
+  '/:id/employees/:employeeId',
+  removeGroupEmployee
+);
+
+router.get(
+  '/:id/finance',
+  requireRole('admin'),
+  getGroupFinance
+);
+
+router.get(
+  '/:id/capacity',
+  getGroupCapacity
+);
 
 export default router;

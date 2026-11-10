@@ -198,3 +198,26 @@ test('Already sent headers are delegated to next', () => {
 
   assert.equal(delegatedError, error);
 });
+
+
+test('Invalid user role returns 400', async () => {
+  await checkError(
+    {
+      code: '23514',
+      message: 'KMS_INVALID_USER_ROLE'
+    },
+    400,
+    'KMS_INVALID_USER_ROLE'
+  );
+});
+
+test('Immutable administrator returns 409', async () => {
+  await checkError(
+    {
+      code: '23505',
+      message: 'KMS_ADMIN_IMMUTABLE'
+    },
+    409,
+    'KMS_ADMIN_IMMUTABLE'
+  );
+});

@@ -231,7 +231,11 @@ test('Access control and audit SQL business logic', {
         employeeId: employee2,
       });
 
-      const regularUser = await createUser('user');
+      const unrelatedParentId = await createParent();
+
+      const regularUser = await createUser('parent', {
+        parentId: unrelatedParentId,
+      });
 
       return {
         group1,
@@ -646,7 +650,7 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
            AND NOT tgisinternal`
       );
 
-      assert.equal(result.rows[0].count, 22);
+      assert.equal(result.rows[0].count, 25);
     });
 
     await scenario('17. INSERT creates audit entry', async () => {

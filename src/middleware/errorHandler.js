@@ -34,6 +34,7 @@ const businessErrors = {
   KMS_INVALID_REPORT_PERIOD: 400,
   KMS_REPORT_REQUIRES_FULL_MONTHS: 400,
   KMS_INVALID_FORECAST_SCENARIO: 400,
+  KMS_INVALID_USER_ROLE: 400,
 
   // 404 — ресурс або запис не знайдено
   KMS_CHILD_NOT_FOUND: 404,
@@ -90,6 +91,7 @@ const businessErrors = {
   KMS_PREFLIGHT_GROUP_OVERFULL: 409,
   KMS_PREFLIGHT_CHILD_AGE_INVALID: 409,
   KMS_PREFLIGHT_GROUP_AGE_INVALID: 409,
+  KMS_ADMIN_IMMUTABLE: 409,
 };
 const configurationErrors = new Set([
   'KMS_MEAL_RATE_NOT_FOUND',
@@ -126,6 +128,24 @@ export function errorHandler(error, req, res, next) {
 
   let status = 500;
   let message = 'Внутрішня помилка сервера';
+
+  if (
+    sqlCode === '23514' &&
+    sqlMessage === 'KMS_INVALID_USER_ROLE'
+  ) {
+    return res.status(400).json({
+      message: 'KMS_INVALID_USER_ROLE'
+    });
+  }
+
+  if (
+    sqlCode === '23505' &&
+    sqlMessage === 'KMS_ADMIN_IMMUTABLE'
+  ) {
+    return res.status(409).json({
+      message: 'KMS_ADMIN_IMMUTABLE'
+    });
+  }
 
   if (
     sqlCode === 'P0001' &&

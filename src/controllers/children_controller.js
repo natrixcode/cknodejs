@@ -2,7 +2,7 @@ import * as service from '../services/children_service.js';
 
 export async function getChildren(req, res, next) {
   try {
-    const result = await service.getChildren();
+    const result = await service.getVisibleChildren(req.user);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -16,7 +16,7 @@ export async function getChildren(req, res, next) {
 
 export async function getChildById(req, res, next) {
   try {
-    const result = await service.getChildById(req.params.id);
+    const result = await service.getVisibleChildById(req.params.id, req.user);
 
     if (result.noContent) {
       return res.sendStatus(result.status);

@@ -1,0 +1,19 @@
+info:
+  name: Admin - Get children
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/children"
+  headers:
+    - name: Authorization
+      value: "Bearer {{adminToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Admin can view children", function () {
+          expect(res.status).to.equal(200);
+        });

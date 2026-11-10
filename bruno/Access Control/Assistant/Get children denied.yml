@@ -1,0 +1,19 @@
+info:
+  name: Assistant - Get children denied
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/children"
+  headers:
+    - name: Authorization
+      value: "Bearer {{assistantToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Assistant cannot view children", function () {
+          expect(res.status).to.equal(403);
+        });

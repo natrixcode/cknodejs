@@ -1,0 +1,19 @@
+info:
+  name: Parent - Get own child
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/children/{{ownChildId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{parentToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Parent can view own child", function () {
+          expect(res.status).to.equal(200);
+        });

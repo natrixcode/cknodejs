@@ -1,0 +1,19 @@
+info:
+  name: Parent - Get child denied
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/children/{{childId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{parentToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Parent cannot view unrelated child", function () {
+          expect(res.status).to.equal(403);
+        });

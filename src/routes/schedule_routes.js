@@ -91,11 +91,10 @@ router.get(
 
 router.get(
   '/:id',
-  requireRole('admin', 'manager', 'teacher', 'employee', 'parent'),
+  requireRole('admin', 'manager', 'employee', 'parent'),
   requireScheduleAccess,
   getScheduleById
 );
-
 
 router.post(
   '/generate',

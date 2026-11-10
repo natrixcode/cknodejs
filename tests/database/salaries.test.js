@@ -339,15 +339,22 @@ test('Salaries SQL business logic', {
       );
     });
 
-    await scenario('15. Reject unsupported employee position', async () => {
+    await scenario('15. Calculate fixed salary for cook', async () => {
       const employeeId = await createEmployee('cook');
 
-      await assert.rejects(
-        db.query(
-          'SELECT kms_calculate_employee_salary($1)',
-          [employeeId]
-        ),
-        /KMS_SALARY_RULE_NOT_DEFINED/
+      const employee = await db.query(
+        'SELECT salary FROM employees WHERE id = $1',
+        [employeeId]
+      );
+
+      const result = await db.query(
+        'SELECT kms_calculate_employee_salary($1) AS salary',
+        [employeeId]
+      );
+
+      assert.equal(
+        Number(result.rows[0].salary),
+        Number(employee.rows[0].salary)
       );
     });
 
