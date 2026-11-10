@@ -1,0 +1,27 @@
+info:
+  name: Group attendance today
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: http://localhost:3000/api/v1/groups/{{attendance_group_id}}/attendance?date={{attendance_date}}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Europe/Kyiv",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).formatToParts(new Date());
+        const values = Object.fromEntries(
+          parts.map(part => [part.type, part.value])
+        );
+        bru.setVar(
+          "attendance_date",
+          `${values.year}-${values.month}-${values.day}`
+        );
