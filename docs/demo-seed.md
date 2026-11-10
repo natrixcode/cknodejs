@@ -1,37 +1,65 @@
 # Demo seed
 
-The demo seed adds two rooms and two subjects.
+The demo setup prepares sample data for local testing and QA.
+
+The SQL seed is located at:
+
+`database/seeds/demo.sql`
+
+Demo account creation is implemented in:
+
+`scripts/seed-demo-users.js`
 
 ## Run
 
-Start Docker Compose and apply migrations first.
+Start Docker Compose, apply migrations and bootstrap the
+first administrator.
 
-Then execute:
+Then run:
 
-docker compose exec server npm run db:seed
+```sh
+docker compose exec -e DEMO_PASSWORD=YOUR_LOCAL_TEST_PASSWORD server npm run demo:setup
+```
+
+The password must contain at least 12 characters.
+
+## Demo accounts
+
+| Username | Role |
+| --- | --- |
+| demo_manager | manager |
+| demo_educator | employee (educator) |
+| demo_assistant | employee (assistant) |
+| demo_teacher | teacher |
+| demo_parent | parent |
+
+All demo accounts use the password supplied through
+DEMO_PASSWORD.
+
+The administrator is created separately through
+`npm run bootstrap:admin`.
 
 ## Safety
 
-- Does not delete existing data.
-- Uses ON CONFLICT to prevent duplicate names.
-- Does not create an administrator.
-- Does not modify migrations.
-- Does not create financial transactions.
-- Disabled when NODE_ENV=production.
+- Demo setup is disabled in production.
+- The seed does not delete existing data.
+- Demo account creation skips existing usernames.
+- The seed does not create an administrator.
+- Demo data is separate from numbered SQL migrations.
+- Never commit real passwords or tokens.
 
 ## Bruno authentication
 
-The Login request is located at:
+Open the Bruno collection and select the Local environment.
 
-bruno/Auth/Login.yml
+Set admin_username, admin_password and demo_password locally.
 
-Replace the placeholder credentials locally.
-Do not commit real passwords.
+Use Auth/Login for administrator authentication or
+Demo Manager Login for manager authentication.
 
-Other protected requests use:
+Successful login saves the token in the Bruno runtime
+variable `token`. Protected requests inherit the
+collection Bearer token.
 
-Authorization: Bearer {{token}}
-
-Automatic token extraction still needs to be
-configured for the actual Bruno collection format
-and login response structure.
+Employees - No Auth explicitly disables authorization
+to test unauthorized access.

@@ -6,7 +6,8 @@ info:
 http:
   method: GET
   url: http://localhost:3000/api/v1/employees
-  auth: inherit
+  auth:
+    type: none
 
 settings:
   encodeUrl: true

@@ -48,11 +48,48 @@ See docs/access-matrix.md.
 
 Open the bruno directory as a collection.
 
-Configure the login request and collection-level
-Bearer authentication according to the existing
-YAML collection format.
+Select the Local environment. Use Auth/Login or Demo Manager Login to obtain a token. Protected requests inherit the collection Bearer token.
 
 ## Notes
 
 Use only local test credentials for demo accounts.
 Never commit .env, real passwords or tokens.
+
+
+## Demo setup for QA (#54)
+
+Apply migrations and create the administrator first.
+
+Run the demo setup with a local test password of at least
+12 characters:
+
+```sh
+docker compose exec -e DEMO_PASSWORD=YOUR_LOCAL_TEST_PASSWORD server npm run demo:setup
+```
+
+Replace YOUR_LOCAL_TEST_PASSWORD with your own test password.
+Do not commit the password or use a production password.
+
+Demo accounts:
+
+| Username | Role |
+| --- | --- |
+| demo_manager | manager |
+| demo_educator | employee (educator) |
+| demo_assistant | employee (assistant) |
+| demo_teacher | teacher |
+| demo_parent | parent |
+
+All five demo accounts use the same DEMO_PASSWORD.
+
+In Bruno, select the Local environment and set:
+
+- admin_username: your bootstrap administrator username
+- admin_password: your bootstrap administrator password
+- demo_password: the same value as DEMO_PASSWORD
+
+Run Demo Manager Login to obtain a manager token.
+Run Auth/Login to obtain an administrator token.
+The token is stored in the Bruno runtime variable token.
+
+Do not commit passwords, tokens, or local secret values.
