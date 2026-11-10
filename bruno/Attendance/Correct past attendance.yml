@@ -1,0 +1,19 @@
+info:
+  name: Correct past attendance
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/v1/attendance/{{attendance_correction_id}}
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "present": false,
+        "reason": "Уточнено менеджером"
+      }

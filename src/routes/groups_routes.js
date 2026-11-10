@@ -1,3 +1,10 @@
+import {
+  getGroupAttendance
+} from '../controllers/attendance_controller.js';
+
+import {
+  validateAttendanceQuery
+} from '../validators/attendance_validator.js';
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
 import { validateRouteId } from '../middleware/validateRouteId.js';
@@ -27,6 +34,12 @@ const router = Router();
 router.param('id', validateRouteId);
 router.param('childId', validateRouteId);
 router.param('employeeId', validateRouteId);
+
+router.get(
+  '/:id/attendance',
+  validateAttendanceQuery,
+  getGroupAttendance
+);
 
 router.use(requireRole('admin', 'manager'));
 const groupStatusSchema = z.strictObject({
