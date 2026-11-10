@@ -2,7 +2,35 @@ import * as service from '../services/children_service.js';
 
 export async function getChildren(req, res, next) {
   try {
-    const result = await service.getChildren();
+    const result = await service.getChildren(req.query);
+
+    if (result.noContent) {
+      return res.sendStatus(result.status);
+    }
+
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function archiveChild(req, res, next) {
+  try {
+    const result = await service.archiveChild(req.params.id, req.body?.reason);
+
+    if (result.noContent) {
+      return res.sendStatus(result.status);
+    }
+
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function unarchiveChild(req, res, next) {
+  try {
+    const result = await service.unarchiveChild(req.params.id);
 
     if (result.noContent) {
       return res.sendStatus(result.status);

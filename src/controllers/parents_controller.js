@@ -2,7 +2,7 @@ import * as service from '../services/parents_service.js';
 
 export async function getParents(req, res, next) {
   try {
-    const result = await service.getParents();
+    const result = await service.getParents(req.query);
 
     if (result.noContent) {
       return res.sendStatus(result.status);

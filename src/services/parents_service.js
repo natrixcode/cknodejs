@@ -10,7 +10,21 @@ const fields = [
   'email'
 ];
 
-export const getParents = () => list('parents');
+export async function getParents(query = {}) {
+  const includeArchived = query.archived === 'true' || query.status === 'archived';
+  const showAll = query.status === 'all';
+
+  let sql = 'SELECT * FROM parents';
+  if (showAll) {
+    sql += ' ORDER BY id';
+  } else if (includeArchived) {
+    sql += " WHERE status = 'archived' ORDER BY id";
+  } else {
+    sql += " WHERE status = 'active' ORDER BY id";
+  }
+
+  return ok(await rows(sql));
+}
 
 export const getParentById = id =>
   byId('parents', id);

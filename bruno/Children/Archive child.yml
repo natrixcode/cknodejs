@@ -1,0 +1,18 @@
+info:
+  name: Archive child
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/children/1/archive
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: |-
+      {
+        "reason": "Family relocated to another city"
+      }
+
