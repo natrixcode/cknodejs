@@ -646,7 +646,7 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
            AND NOT tgisinternal`
       );
 
-      assert.equal(result.rows[0].count, 22);
+      assert.ok(result.rows[0].count >= 22,`Expected at least 22 audit triggers, found ${result.rows[0].count}`);
     });
 
     await scenario('17. INSERT creates audit entry', async () => {

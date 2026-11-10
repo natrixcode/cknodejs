@@ -28,6 +28,6 @@ export const validateQuery = (schema) => (req, res, next) => {
     });
   }
 
-  req.query = result.data;
+  res.locals.validatedQuery = result.data;
   next();
 };
