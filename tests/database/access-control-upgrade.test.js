@@ -126,7 +126,7 @@ test(
         await client.end();
       }
 
-      await copyMigrations(19, 26);
+      await copyMigrations(19, 27);
       await migrate();
 
       const upgraded = new Client({

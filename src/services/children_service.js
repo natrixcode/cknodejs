@@ -27,9 +27,9 @@ export async function getChildren(query = {}) {
   return ok(await rows(sql));
 }
 
-export async function getVisibleChildren(user) {
+export async function getVisibleChildren(user, query = {}) {
   if (user.role === 'admin' || user.role === 'manager') {
-    return getChildren();
+    return getChildren(query);
   }
 
   if (user.role === 'employee' && user.employee_position === 'educator') {

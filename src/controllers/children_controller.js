@@ -2,7 +2,7 @@ import * as service from '../services/children_service.js';
 
 export async function getChildren(req, res, next) {
   try {
-    const result = await service.getVisibleChildren(req.user);
+    const result = await service.getVisibleChildren(req.user, req.query);
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -24,7 +24,7 @@ export async function archiveChild(req, res, next) {
 
     return res.status(result.status).json(result.body);
   } catch (error) {
-    next(error);
+    next(error);  
   }
 }
 
