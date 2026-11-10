@@ -383,7 +383,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /7 applied, 11 already applied/
+          new RegExp(`Migrations complete: ${files.length - 11} applied, 11 already applied\\.`)
         );
 
         assert.deepEqual(
@@ -400,7 +400,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          new RegExp(`Migrations complete: 0 applied, ${files.length} already applied\\.`)
         );
 
         await st.test(
@@ -438,7 +438,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /18 applied, 0 already applied/
+          new RegExp(`Migrations complete: ${files.length} applied, 0 already applied\\.`)
         );
 
         const before = (
@@ -449,7 +449,7 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 18 already applied/
+          new RegExp(`Migrations complete: 0 applied, ${files.length} already applied\\.`)
         );
 
         assert.deepEqual(

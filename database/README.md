@@ -1,5 +1,10 @@
 # SQL-міграції PostgreSQL
 
+Автогенерація розкладу #51: міграція `0020_generate_group_day.sql`, правила,
+API та демонстрація описані в [окремій інструкції](../docs/schedule-generation.md).
+Перед застосуванням до основної БД потрібна міграція `0019_fixed_employee_salaries.sql`
+з актуального main; номер 0020 необхідно повторно узгодити з TL перед merge.
+
 Міграції — це послідовні зміни структури або даних БД. Команда
 `npm run db:migrate` застосовує SQL із `database/migrations/` через `pg`.
 Старт API (`npm start`, `npm run dev`, стандартний запуск контейнера `server`)

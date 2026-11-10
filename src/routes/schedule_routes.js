@@ -17,7 +17,7 @@ import {
   publishSchedule
 } from '../controllers/schedule_controller.js';
 
-import { scheduleSchema } from '../validators/schedule_validator.js';
+import { scheduleSchema, generateScheduleSchema } from '../validators/schedule_validator.js';
 
 const router = Router();
 
@@ -52,6 +52,7 @@ const schedulePatchSchema = z.strictObject({
 );
 
 const validateScheduleSchema = z.strictObject({
+  subject_id: z.number().int().positive().safe().optional(),
   group_id: z.number().int().positive(),
   teacher_id: z.number().int().positive(),
   room_id: z.number().int().positive(),
@@ -100,6 +101,7 @@ router.get(
 router.post(
   '/generate',
   requireRole('admin', 'manager'),
+  validateBody(generateScheduleSchema),
   generateSchedule
 );
 
