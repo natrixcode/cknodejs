@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import { pool } from '../../src/config/database.js';
 
 test('Demo seed contains required data', {
-  skip: !process.env.PGPASSWORD
-    ? 'Set PostgreSQL credentials to enable demo seed test'
+  skip: process.env.RUN_DEMO_SEED_TEST !== "true"
+    ? "Demo seed test requires prepared demo database"
     : false
 }, async () => {
   const checks = [
