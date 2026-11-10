@@ -51,9 +51,9 @@ async function main() {
       );
 
       if (existing.rows[0].exists) {
-        throw new Error(
-          'Administrator already exists. Bootstrap is disabled.'
-        );
+        await client.query('ROLLBACK');
+        console.log('Administrator already exists. No changes made.');
+        return;
       }
 
       await client.query(

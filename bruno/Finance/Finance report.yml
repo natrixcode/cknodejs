@@ -6,3 +6,11 @@ info:
 http:
   method: GET
   url: http://localhost:3000/api/v1/reports/finance?start_date=2026-12-01&end_date=2026-12-31
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

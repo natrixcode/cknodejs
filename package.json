@@ -14,7 +14,11 @@
     "test": "node --test",
     "db:migrate": "node src/database/migrate.js",
     "test:db-migrations": "node --test tests/database/migrations.test.js",
-    "test:db-business-rules": "node --test tests/database/business-rules.test.js"
+    "test:db-business-rules": "node --test tests/database/business-rules.test.js",
+    "bootstrap:admin": "node scripts/bootstrap-admin.js",
+    "db:seed": "node scripts/seed-demo.js",
+    "db:seed:users": "node scripts/seed-demo-users.js",
+    "demo:setup": "npm run db:seed && npm run db:seed:users"
   },
   "dependencies": {
     "express": "5.2.1",

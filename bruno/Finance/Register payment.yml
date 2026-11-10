@@ -11,8 +11,16 @@ http:
     data: |-
       {
         "invoice_id": 1,
-        "amount": 10000,
+        "amount": 5000,
         "method": "card",
-        "payment_date": "2026-12-05T10:00:00+02:00",
-        "transaction_id": "bank-2026-12-05-0001"
+        "payment_date": "2026-11-10T18:15:00+02:00",
+        "transaction_id": "demo-payment-invoice1-001"
       }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
