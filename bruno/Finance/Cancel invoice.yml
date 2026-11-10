@@ -5,4 +5,12 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/v1/invoices/1/cancel
+  url: http://localhost:3000/api/v1/invoices/3/cancel
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

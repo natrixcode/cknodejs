@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { requireRole } from '../middleware/auth.js';
 import { requireChildAccess } from '../middleware/childAccess.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 import {
   getChildren,
   getChildById,
   createChild,
   updateChild,
+  archiveChild,
+  unarchiveChild,
   getChildParents,
   getChildGroups,
   getChildInvoices,
@@ -15,12 +18,14 @@ import {
 
 import {
   createChildSchema,
-  updateChildSchema
+  updateChildSchema,
+  archiveChildSchema
 } from '../validators/child_validator.js';
 
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
+router.param('id', validateRouteId);
 router.get(
   '/',
   requireRole('admin', 'manager', 'employee'),
@@ -38,6 +43,19 @@ router.post(
   requireRole('admin', 'manager'),
   validateBody(createChildSchema),
   createChild
+);
+
+router.post(
+  '/:id/archive',
+  requireRole('admin', 'manager'),
+  validateBody(archiveChildSchema),
+  archiveChild
+);
+
+router.post(
+  '/:id/unarchive',
+  requireRole('admin'),
+  unarchiveChild
 );
 
 router.patch(

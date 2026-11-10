@@ -1,4 +1,3 @@
-
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -383,7 +382,9 @@ test(
 
         assert.match(
           await migrate(name),
-          /15 applied, 11 already applied/
+          new RegExp(
+            `Migrations complete: ${files.length - 11} applied, 11 already applied\\.`
+          )
         );
 
         assert.deepEqual(
@@ -400,7 +401,9 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 26 already applied/
+          new RegExp(
+            `Migrations complete: 0 applied, ${files.length} already applied\\.`
+          )
         );
 
         await st.test(
@@ -438,7 +441,9 @@ test(
 
         assert.match(
           await migrate(name),
-          /26 applied, 0 already applied/
+          new RegExp(
+            `Migrations complete: ${files.length} applied, 0 already applied\\.`
+          )
         );
 
         const before = (
@@ -449,7 +454,9 @@ test(
 
         assert.match(
           await migrate(name),
-          /0 applied, 26 already applied/
+          new RegExp(
+            `Migrations complete: 0 applied, ${files.length} already applied\\.`
+          )
         );
 
         assert.deepEqual(
@@ -470,7 +477,6 @@ test(
     );
   }
 );
-
 
 async function regression(t, c, f) {
   await t.test(
@@ -567,7 +573,6 @@ async function regression(t, c, f) {
       }
     }
   );
-
 
   for (const [label, sql, error] of [
     [
@@ -777,7 +782,6 @@ async function regression(t, c, f) {
         const roomId = f.groups[1].room;
         const day = '2026-11-05';
 
-        // Four daily routine blocks for 09:00–17:00.
         const blocks = [
           ['meal', '09:00', '09:30'],
           ['meal', '12:00', '12:30'],
@@ -806,7 +810,6 @@ async function regression(t, c, f) {
           );
         }
 
-        // Create a draft lesson with all required fields.
         await c.query(
           `INSERT INTO schedule
            (
@@ -828,7 +831,6 @@ async function regression(t, c, f) {
           ]
         );
 
-        // Publish using the custom 09:00 start.
         const published = await c.query(
           `SELECT kms_publish_group_day(
              $1,$2,$3
@@ -845,7 +847,6 @@ async function regression(t, c, f) {
           1
         );
 
-        // Verify the custom window was saved.
         const result = await c.query(
           `SELECT day_start
            FROM kms_group_day_windows
@@ -859,7 +860,6 @@ async function regression(t, c, f) {
           '09:00:00'
         );
 
-        // Editing a block inside the workday is valid.
         const validEdit = await c.query(
           `UPDATE kms_daily_blocks
            SET
@@ -880,7 +880,6 @@ async function regression(t, c, f) {
 
         assert.equal(validEdit.rowCount, 1);
 
-        // Moving a block before 09:00 must fail.
         await assert.rejects(
           c.query(
             `UPDATE kms_daily_blocks

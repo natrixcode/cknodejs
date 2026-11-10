@@ -1,6 +1,6 @@
 
 import {
-  ok, fail, missing, unsupported,
+  ok, fail, missing,
   list, byId, patch, rows, one, transaction
 } from './_common.js';
 
@@ -63,9 +63,9 @@ export async function updateSchedule(id, data) {
 export async function deleteSchedule(id) {
   const removed = await one(
     `DELETE FROM schedule
-     WHERE id = $1 AND status = $2
+     WHERE id = $1
      RETURNING id`,
-    [id, 'draft']
+    [id]
   );
 
   return removed
@@ -73,15 +73,20 @@ export async function deleteSchedule(id) {
     : missing();
 }
 
-export const generateSchedule = () =>
-  unsupported(
-    'У міграціях немає SQL-функції генерації розкладу'
-  );
+export async function generateSchedule(data) {
+  return ok(await rows(
+    'SELECT * FROM kms_generate_group_day($1, $2::date)',
+    [data.group_id, data.date]
+  ), 201);
+}
 
-export const validateSchedule = () =>
-  unsupported(
-    'У міграціях немає SQL-функції перевірки чернетки без збереження'
-  );
+export async function validateSchedule(data) {
+  return ok(await one(
+    'SELECT kms_validate_lesson_draft($1, $2, $3, $4, $5, $6, $7) AS valid',
+    [data.group_id, data.teacher_id, data.room_id, data.start_time,
+      data.end_time, data.exclude_id ?? null, data.subject_id ?? null]
+  ));
+}
 
 export async function publishSchedule(data) {
   return transaction(async db => {

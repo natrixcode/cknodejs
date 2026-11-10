@@ -129,16 +129,16 @@ test('Invoices, payments and finance reports HTTP integration', {
         transaction_id: transactionId ?? `finance-tx-${++counter}`,
       }, status);
 
-    const createEmployee = (position, number) =>
-      post('/employees', {
-        first_name: 'Finance',
-        last_name: `Employee${number}`,
-        email: `finance${number}@example.com`,
-        phone: `098${String(number).padStart(7, '0')}`,
-        position,
-        salary: 1,
-        status: 'active',
-      });
+ const createEmployee = (position, number, salary = 1) =>
+  post('/employees', {
+    first_name: 'Finance',
+    last_name: `Employee${number}`,
+    email: `finance${number}@example.com`,
+    phone: `098${String(number).padStart(7, '0')}`,
+    position,
+    salary,
+    status: 'active',
+  });
 
     const regular = await createChild('Regular');
     const discounted = await createChild('Discounted');
@@ -332,7 +332,53 @@ test('Invoices, payments and finance reports HTTP integration', {
     });
 
     const manager = await createEmployee('manager', 1);
-    const teacher = await createEmployee('teacher', 2);
+const teacher = await createEmployee('teacher', 2);
+
+const director = await createEmployee('director', 3, 15000);
+const cook = await createEmployee('cook', 4, 12000);
+const nurse = await createEmployee('nurse', 5, 13000);
+const accountant = await createEmployee('accountant', 6, 16000);
+
+await t.test('Fixed salary positions use employees.salary through HTTP', async () => {
+  const employees = [
+    { employee: director, expectedSalary: 15000, position: 'director' },
+    { employee: cook, expectedSalary: 12000, position: 'cook' },
+    { employee: nurse, expectedSalary: 13000, position: 'nurse' },
+    { employee: accountant, expectedSalary: 16000, position: 'accountant' },
+  ];
+
+  for (const { employee, expectedSalary, position } of employees) {
+    const result = await get(`/employees/${employee.id}/salary`);
+
+    assert.equal(
+      Number(result.amount),
+      expectedSalary,
+      `${position} should receive the salary from employees.salary`
+    );
+  }
+});
+
+await t.test('POST /salaries creates salaries for fixed salary positions', async () => {
+  const employees = [
+    { employee: director, expectedSalary: 15000, position: 'director' },
+    { employee: cook, expectedSalary: 12000, position: 'cook' },
+    { employee: nurse, expectedSalary: 13000, position: 'nurse' },
+    { employee: accountant, expectedSalary: 16000, position: 'accountant' },
+  ];
+
+  for (const { employee, expectedSalary, position } of employees) {
+    const salary = await post('/salaries', {
+      employee_id: Number(employee.id),
+      period_start: PERIOD,
+    }, 201);
+
+    assert.equal(
+      Number(salary.net_salary),
+      expectedSalary,
+      `${position} should receive employees.salary through POST /salaries`
+    );
+  }
+});
 
     await t.test('Monthly salaries are recorded once per period', async () => {
       const salary = await post('/salaries', {
@@ -383,11 +429,11 @@ test('Invoices, payments and finance reports HTTP integration', {
 
       assert.deepEqual(report, {
         revenue: '64606.58',
-        payroll_cost: '120000.00',
+        payroll_cost: '176000.00',
         other_expenses: '5000.00',
-        operating_profit: '-60393.42',
+        operating_profit: '-116393.42',
         room_model_cost: '0.00',
-        modeled_profit: '-60393.42',
+        modeled_profit: '-116393.42',
       });
 
       const revenue = await get('/reports/revenue', REPORT);
@@ -402,7 +448,7 @@ test('Invoices, payments and finance reports HTTP integration', {
       const salaries = await get('/reports/salaries', REPORT);
       assert.deepEqual(
         salaries.map(row => Number(row.total)),
-        [80000, 40000]
+        [80000, 40000, 15000, 12000, 13000, 16000]
       );
     });
   } finally {

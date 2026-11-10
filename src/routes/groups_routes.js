@@ -1,9 +1,18 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
+import {
+  getGroupAttendance
+} from '../controllers/attendance_controller.js';
+
+import {
+  validateAttendanceQuery
+} from '../validators/attendance_validator.js';
+
 import { requireRole } from '../middleware/auth.js';
 import { requireGroupChildrenAccess } from '../middleware/groupChildrenAccess.js';
 import { validateBody } from '../middleware/validate.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getGroups,
@@ -26,6 +35,10 @@ import { groupSchema } from '../validators/group_validator.js';
 
 const router = Router();
 
+router.param('id', validateRouteId);
+router.param('childId', validateRouteId);
+router.param('employeeId', validateRouteId);
+
 const groupStatusSchema = z.strictObject({
   status: z.enum(['active', 'inactive'])
 });
@@ -38,6 +51,12 @@ const addGroupEmployeeSchema = z.strictObject({
   employee_id: z.coerce.number().int().positive(),
   role: z.enum(['educator', 'assistant'])
 });
+
+router.get(
+  '/:id/attendance',
+  validateAttendanceQuery,
+  getGroupAttendance
+);
 
 router.get(
   '/:id/children',

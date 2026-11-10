@@ -1,0 +1,12 @@
+info:
+  name: Get record history
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:3000/api/v1/history?table=children&id=1
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+

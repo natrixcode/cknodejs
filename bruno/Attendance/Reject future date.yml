@@ -1,0 +1,20 @@
+info:
+  name: Reject future attendance
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/attendance
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "child_id": "{{attendance_child_id}}",
+        "date": "9999-12-31",
+        "present": true
+      }

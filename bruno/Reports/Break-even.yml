@@ -6,3 +6,11 @@ info:
 http:
   method: GET
   url: http://localhost:3000/api/v1/reports/break-even?age=3&available_rooms=5&meal_days=20&food_cost_per_day=200&discount_percent=0
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

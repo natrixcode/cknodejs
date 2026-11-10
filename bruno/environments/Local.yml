@@ -1,0 +1,10 @@
+name: Local
+variables:
+  - name: admin_username
+    value: admin
+  - secret: true
+    name: admin_password
+    description: Local admin password
+  - secret: true
+    name: demo_password
+    description: Same password as DEMO_PASSWORD

@@ -1,5 +1,5 @@
 import {
-  unsupported, list, byId, create, patch
+  list, byId, create, patch
 } from './_common.js';
 
 const fields = [
@@ -22,8 +22,3 @@ export const createExpense = data =>
 
 export const updateExpense = (id, data) =>
   patch('expenses', id, data, fields);
-
-export const cancelExpense = () =>
-  unsupported(
-    'У таблиці expenses немає поля статусу та SQL-операції скасування'
-  );

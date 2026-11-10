@@ -13,3 +13,11 @@ http:
         "employee_id": 1,
         "period_start": "2026-12-01"
       }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

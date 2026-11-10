@@ -75,6 +75,29 @@ test('Invalid SQL input returns 400', async () => {
   );
 });
 
+test('Published schedule immutable returns 422', async () => {
+  await checkError(
+    {
+      code: '23514',
+      message: 'KMS_PUBLISHED_SCHEDULE_IMMUTABLE'
+    },
+    422,
+    'KMS_PUBLISHED_SCHEDULE_IMMUTABLE'
+  );
+});
+
+test('Other check constraint violations return 400', async () => {
+  await checkError(
+    {
+      code: '23514',
+      message: 'Some other constraint violation'
+    },
+    400,
+    'Некоректні дані або порушено обмеження бази даних'
+  );
+});
+
+
 test('Unique constraint returns 409', async () => {
   await checkError(
     { code: '23505', message: 'SQL internal details' },

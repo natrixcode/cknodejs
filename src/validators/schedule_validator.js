@@ -1,6 +1,13 @@
 
 import { z } from 'zod';
 
+export const generateScheduleSchema = z.strictObject({
+  group_id: z.number().int().positive().safe(),
+  date: z.iso.date().refine(value => value >= '0001-01-01', {
+    message: 'Дата повинна бути не раніше 0001-01-01',
+  }),
+});
+
 const timestampSchema = z.iso.datetime({
   offset: true,
 });

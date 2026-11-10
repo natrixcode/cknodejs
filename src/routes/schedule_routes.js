@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
 import { validateBody } from '../middleware/validate.js';
+import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getSchedules,
@@ -17,9 +18,11 @@ import {
   publishSchedule
 } from '../controllers/schedule_controller.js';
 
-import { scheduleSchema } from '../validators/schedule_validator.js';
+import { scheduleSchema, generateScheduleSchema } from '../validators/schedule_validator.js';
 
 const router = Router();
+
+router.param('id', validateRouteId);
 
 router.use(requireAuth);
 
@@ -52,6 +55,7 @@ const schedulePatchSchema = z.strictObject({
 );
 
 const validateScheduleSchema = z.strictObject({
+  subject_id: z.number().int().positive().safe().optional(),
   group_id: z.number().int().positive(),
   teacher_id: z.number().int().positive(),
   room_id: z.number().int().positive(),
@@ -99,6 +103,7 @@ router.get(
 router.post(
   '/generate',
   requireRole('admin', 'manager'),
+  validateBody(generateScheduleSchema),
   generateSchedule
 );
 

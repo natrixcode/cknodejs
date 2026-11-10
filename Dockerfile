@@ -24,3 +24,6 @@ USER node
 EXPOSE 3000
 
 CMD ["node", "src/server.js"]
+
+# Demo seed SQL files
+COPY --chown=node:node database/seeds ./database/seeds

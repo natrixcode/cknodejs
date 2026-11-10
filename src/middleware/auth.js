@@ -1,5 +1,7 @@
-import { pool } from "../config/database.js";
-import { getSession } from "../utils/sessions.js";
+import { pool } from '../config/database.js';
+import { getSession } from '../utils/sessions.js';
+import { actorContext } from '../services/_common.js';
+
 
 export async function requireAuth(req, res, next) {
   try {
@@ -51,7 +53,9 @@ export async function requireAuth(req, res, next) {
     req.user = result.rows[0];
     req.authToken = token;
 
-    next();
+    actorContext.run(req.user.id, () => {
+      next();
+    });
   } catch (error) {
     next(error);
   }
