@@ -1,0 +1,18 @@
+info:
+  name: Not_found_children
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: http://localhost:3000/api/v1/children/99999999
+  auth:
+    type: bearer
+    token: d08aab6072ba70b7777ccbb7be593902d6a757c57714feb80ef50827d7ebcc0a
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,28 @@
+info:
+  name: Manager
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/users
+  body:
+    type: json
+    data: |-
+      {
+        "username": "test_manager",
+        "name": "Test Manager",
+        "email": "test.manager@example.com",
+        "password": "DemoManager2026!",
+        "role": "manager"
+      }
+  auth:
+    type: bearer
+    token: d08aab6072ba70b7777ccbb7be593902d6a757c57714feb80ef50827d7ebcc0a
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

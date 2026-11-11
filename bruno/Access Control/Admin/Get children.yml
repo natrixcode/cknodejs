@@ -6,9 +6,9 @@ info:
 http:
   method: GET
   url: "{{baseUrl}}/children"
-  headers:
-    - name: Authorization
-      value: "Bearer {{adminToken}}"
+  auth:
+    type: bearer
+    token: 91eb661be690a9dad338aafefb3b264dd59f4597edcd791a745f16e948091987
 
 runtime:
   scripts:
@@ -17,3 +17,10 @@ runtime:
         test("Admin can view children", function () {
           expect(res.status).to.equal(200);
         });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
