@@ -45,12 +45,6 @@ app.use(
 );
 
 // Protected API routes
-
-
-
-
-
-
 app.use(`${API_PREFIX}/history`, requireAuth, historyRouter);
 app.use(`${API_PREFIX}/attendance`, requireAuth, attendanceRouter);
 

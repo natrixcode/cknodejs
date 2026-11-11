@@ -289,7 +289,7 @@ test('Audit log protection and history access SQL logic (Issue #55)', {
 
         const afterInsertTs = (
           await db.query(
-            `SELECT clock_timestamp() AS ts`
+            `SELECT clock_timestamp()::text AS ts`
           )
         ).rows[0].ts;
 
