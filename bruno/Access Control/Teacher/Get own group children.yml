@@ -1,0 +1,30 @@
+info:
+  name: Teacher - Get own group children
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/groups/{{groupId}}/children"
+  headers:
+    - name: Authorization
+      value: "Bearer {{teacherToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Teacher sees only permitted fields", function () {
+          expect(res.status).to.equal(200);
+
+          const data = res.body.data;
+
+          expect(data).to.be.an("array");
+          expect(data.length).to.be.greaterThan(0);
+
+          for (const child of data) {
+            expect(Object.keys(child).sort()).to.deep.equal(
+              ["first_name", "last_name", "age", "group_id"].sort()
+            );
+          }
+        });

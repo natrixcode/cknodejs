@@ -1,0 +1,27 @@
+info:
+  name: Admin - Block administrator
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/users/{{adminId}}/status"
+  headers:
+    - name: Authorization
+      value: "Bearer {{adminToken}}"
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "status": "blocked"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Administrator cannot be blocked", function () {
+          expect(res.status).to.equal(409);
+        });

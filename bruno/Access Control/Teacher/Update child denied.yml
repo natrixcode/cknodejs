@@ -1,0 +1,27 @@
+info:
+  name: Teacher - Update child denied
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/children/{{childId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{teacherToken}}"
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "Updated"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Teacher cannot update children", function () {
+          expect(res.status).to.equal(403);
+        });

@@ -41,14 +41,35 @@ export async function updateGroupStatus(id, data) {
   );
 }
 
-export async function getGroupChildren(id) {
+export async function getGroupChildren(id, user) {
+  if (
+    user.role === 'employee' &&
+    user.employee_position === 'teacher'
+  ) {
+    return ok(
+      await rows(
+        `SELECT
+           c.first_name,
+           c.last_name,
+           EXTRACT(YEAR FROM age(CURRENT_DATE, c.date_of_birth))::int AS age,
+           c.group_id
+         FROM children c
+         WHERE c.group_id = $1
+           AND kms_can_view_group_children($2, c.group_id)
+         ORDER BY c.id`,
+        [id, user.id]
+      )
+    );
+  }
+
   return ok(
     await rows(
-      `SELECT *
-       FROM children
-       WHERE group_id = $1
-       ORDER BY id`,
-      [id]
+      `SELECT c.*
+       FROM children c
+       WHERE c.group_id = $1
+         AND kms_can_view_group_children($2, c.group_id)
+       ORDER BY c.id`,
+      [id, user.id]
     )
   );
 }
@@ -118,14 +139,24 @@ export async function removeGroupEmployee(
   };
 }
 
-export async function getGroupSchedule(id) {
+export async function getGroupSchedule(id, user) {
   return ok(
     await rows(
-      `SELECT *
-       FROM schedule
-       WHERE group_id = $1
-       ORDER BY start_time`,
-      [id]
+      `SELECT s.*
+       FROM schedule s
+       WHERE s.group_id = $1
+         AND kms_can_view_group_children($2, s.group_id)
+         AND (
+           $3::text <> 'teacher'
+           OR s.teacher_id = $4
+         )
+       ORDER BY s.start_time`,
+      [
+        id,
+        user.id,
+        user.employee_position ?? '',
+        user.employee_id ?? null
+      ]
     )
   );
 }

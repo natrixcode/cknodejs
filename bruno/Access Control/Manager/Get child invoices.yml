@@ -1,0 +1,19 @@
+info:
+  name: Manager - Get child invoices
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/children/{{childId}}/invoices"
+  headers:
+    - name: Authorization
+      value: "Bearer {{managerToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Manager can view child invoices", function () {
+          expect(res.status).to.equal(200);
+        });

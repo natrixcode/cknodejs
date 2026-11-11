@@ -75,7 +75,10 @@ export async function updateGroupStatus(req, res, next) {
 
 export async function getGroupChildren(req, res, next) {
   try {
-    const result = await service.getGroupChildren(req.params.id);
+    const result = await service.getGroupChildren(
+      req.params.id,
+      req.user
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);
@@ -162,7 +165,10 @@ export async function removeGroupEmployee(req, res, next) {
 
 export async function getGroupSchedule(req, res, next) {
   try {
-    const result = await service.getGroupSchedule(req.params.id);
+    const result = await service.getGroupSchedule(
+      req.params.id,
+      req.user
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

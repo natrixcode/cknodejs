@@ -1,4 +1,3 @@
-
 import { pool } from '../config/database.js';
 
 export async function requireChildAccess(req, res, next) {
@@ -17,10 +16,26 @@ export async function requireChildAccess(req, res, next) {
       });
     }
 
-    const result = await pool.query(
-      `SELECT kms_can_view_child($1, $2) AS allowed`,
-      [req.user.id, childId]
-    );
+    let sql = 'SELECT kms_can_view_child($1, $2) AS allowed';
+
+    if (
+      req.user.role === 'employee' &&
+      req.user.employee_position === 'teacher'
+    ) {
+      sql = `
+        SELECT EXISTS (
+          SELECT 1
+          FROM children c
+          WHERE c.id = $2
+            AND kms_can_view_group_children($1, c.group_id)
+        ) AS allowed
+      `;
+    }
+
+    const result = await pool.query(sql, [
+      req.user.id,
+      childId
+    ]);
 
     if (!result.rows[0]?.allowed) {
       return res.status(403).json({
@@ -33,4 +48,3 @@ export async function requireChildAccess(req, res, next) {
     next(error);
   }
 }
-

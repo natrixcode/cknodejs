@@ -1,4 +1,3 @@
-
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -231,7 +230,11 @@ test('Access control and audit SQL business logic', {
         employeeId: employee2,
       });
 
-      const regularUser = await createUser('user');
+      const unrelatedParentId = await createParent();
+
+      const regularUser = await createUser('parent', {
+        parentId: unrelatedParentId,
+      });
 
       return {
         group1,
@@ -266,10 +269,6 @@ test('Access control and audit SQL business logic', {
 
       return result.rows[0];
     }
-
-    // ==========================================
-    // ACCESS TO CHILDREN
-    // ==========================================
 
     await scenario('1. Admin and manager can view children', async () => {
       const f = await makeFixture();
@@ -424,10 +423,6 @@ test('Access control and audit SQL business logic', {
       );
     });
 
-    // ==========================================
-    // ACCESS TO INVOICES
-    // ==========================================
-
     await scenario('8. Admin and related parent can view invoice', async () => {
       const f = await makeFixture();
 
@@ -460,47 +455,43 @@ test('Access control and audit SQL business logic', {
       );
     });
 
-await scenario('9. Unrelated users cannot view invoice', async () => {
-  const f = await makeFixture();
+    await scenario('9. Unrelated users cannot view invoice', async () => {
+      const f = await makeFixture();
 
-  const invoice = await db.query(
-    `SELECT *
-     FROM kms_issue_invoice(
-       $1, DATE '2026-10-01', 1, 5
-     )`,
-    [f.child1]
-  );
+      const invoice = await db.query(
+        `SELECT *
+         FROM kms_issue_invoice(
+           $1, DATE '2026-10-01', 1, 5
+         )`,
+        [f.child1]
+      );
 
-  const invoiceId = invoice.rows[0].id;
+      const invoiceId = invoice.rows[0].id;
 
-  // Менеджер має право переглядати рахунки
-  // відповідно до міграції 0015.
-  assert.equal(
-    await allowed(
-      'kms_can_view_invoice',
-      f.managerUser,
-      invoiceId
-    ),
-    true
-  );
+      assert.equal(
+        await allowed(
+          'kms_can_view_invoice',
+          f.managerUser,
+          invoiceId
+        ),
+        true
+      );
 
-  // Сторонні користувачі не мають доступу.
-  for (const user of [
-    f.parentUser2,
-    f.employeeUser1,
-    f.regularUser,
-  ]) {
-    assert.equal(
-      await allowed(
-        'kms_can_view_invoice',
-        user,
-        invoiceId
-      ),
-      false
-    );
-  }
-});
-
+      for (const user of [
+        f.parentUser2,
+        f.employeeUser1,
+        f.regularUser,
+      ]) {
+        assert.equal(
+          await allowed(
+            'kms_can_view_invoice',
+            user,
+            invoiceId
+          ),
+          false
+        );
+      }
+    });
 
     await scenario('10. Blocked parent cannot view invoice', async () => {
       const f = await makeFixture();
@@ -529,10 +520,6 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
         false
       );
     });
-
-    // ==========================================
-    // ADMINISTRATIVE RIGHTS
-    // ==========================================
 
     await scenario('11. Manager has permitted area access', async () => {
       const f = await makeFixture();
@@ -634,10 +621,6 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
       );
     });
 
-    // ==========================================
-    // AUDIT LOG
-    // ==========================================
-
     await t.test('16. Audit triggers exist on protected tables', async () => {
       const result = await db.query(
         `SELECT COUNT(*)::int AS count
@@ -646,7 +629,10 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
            AND NOT tgisinternal`
       );
 
-      assert.ok(result.rows[0].count >= 22,`Expected at least 22 audit triggers, found ${result.rows[0].count}`);
+      assert.ok(
+        result.rows[0].count >= 25,
+        `Expected at least 25 audit triggers, found ${result.rows[0].count}`
+      );
     });
 
     await scenario('17. INSERT creates audit entry', async () => {
@@ -715,7 +701,6 @@ await scenario('9. Unrelated users cannot view invoice', async () => {
     await scenario('20. Audit records supplied actor user ID', async () => {
       const adminUser = await createUser('admin');
 
-      // Actor is supplied by a trusted server component.
       await db.query(
         `SELECT set_config(
           'kms.actor_user_id',

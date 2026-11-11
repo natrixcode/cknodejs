@@ -47,6 +47,7 @@ const businessErrors = {
   KMS_INVALID_REPORT_PERIOD: 400,
   KMS_REPORT_REQUIRES_FULL_MONTHS: 400,
   KMS_INVALID_FORECAST_SCENARIO: 400,
+  KMS_INVALID_USER_ROLE: 400,
 
   // 404 — ресурс або запис не знайдено
   KMS_CHILD_NOT_FOUND: 404,
@@ -110,6 +111,7 @@ const businessErrors = {
   KMS_PREFLIGHT_GROUP_OVERFULL: 409,
   KMS_PREFLIGHT_CHILD_AGE_INVALID: 409,
   KMS_PREFLIGHT_GROUP_AGE_INVALID: 409,
+  KMS_ADMIN_IMMUTABLE: 409,
 
     // Issue #53 — attendance.
   KMS_ATTENDANCE_FORBIDDEN: 403,
@@ -157,13 +159,35 @@ export function errorHandler(error, req, res, next) {
   let status = 500;
   let message = 'Внутрішня помилка сервера';
 
- if (
-  typeof sqlMessage === 'string' &&
-  Object.hasOwn(businessErrors, sqlMessage) &&
-  (sqlCode === 'P0001' ||
-    (sqlCode === '23514' &&
-      sqlMessage === 'KMS_PUBLISHED_SCHEDULE_IMMUTABLE'))
-) {
+  if (
+    sqlCode === '23514' &&
+    sqlMessage === 'KMS_INVALID_USER_ROLE'
+  ) {
+    return res.status(400).json({
+      message: 'KMS_INVALID_USER_ROLE'
+    });
+  }
+
+  if (
+    sqlCode === '23505' &&
+    sqlMessage === 'KMS_ADMIN_IMMUTABLE'
+  ) {
+    return res.status(409).json({
+      message: 'KMS_ADMIN_IMMUTABLE'
+    });
+  }
+
+  if (
+    typeof sqlMessage === 'string' &&
+    Object.hasOwn(businessErrors, sqlMessage) &&
+    (
+      sqlCode === 'P0001' ||
+      (
+        sqlCode === '23514' &&
+        sqlMessage === 'KMS_PUBLISHED_SCHEDULE_IMMUTABLE'
+      )
+    )
+  ) {
     status = businessErrors[sqlMessage];
     message = sqlMessage;
    } else if (

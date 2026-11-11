@@ -1,0 +1,19 @@
+info:
+  name: Teacher - Get other group children
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/groups/{{otherGroupId}}/children"
+  headers:
+    - name: Authorization
+      value: "Bearer {{teacherToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Teacher cannot view another group children", function () {
+          expect(res.status).to.equal(403);
+        });

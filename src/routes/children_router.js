@@ -28,7 +28,7 @@ const router = Router();
 router.param('id', validateRouteId);
 router.get(
   '/',
-  requireRole('admin', 'manager'),
+  requireRole('admin', 'manager', 'employee'),
   getChildren
 );
 
@@ -79,13 +79,13 @@ router.get(
 
 router.get(
   '/:id/invoices',
-  requireRole('admin'),
+  requireRole('admin', 'manager'),
   getChildInvoices
 );
 
 router.get(
   '/:id/payments',
-  requireRole('admin'),
+  requireRole('admin', 'manager'),
   getChildPayments
 );
 

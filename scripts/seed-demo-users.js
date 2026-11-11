@@ -22,7 +22,7 @@ const accounts = [
   {
     username: 'demo_teacher',
     name: 'Demo Teacher',
-    role: 'teacher',
+    role: 'employee',
     employeeEmail: 'demo.teacher@example.test'
   },
   {

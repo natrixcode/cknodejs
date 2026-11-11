@@ -173,7 +173,7 @@ test('Issue #53: attendance SQL and HTTP', {
     const educator = await user('employee', educatorEmployee);
     const assistant = await user('employee', assistantEmployee);
     const teacher = await user('employee', teacherEmployee);
-    const legacyTeacher = await user('teacher', legacyTeacherEmployee);
+    const legacyTeacher = await user('employee', legacyTeacherEmployee);
     const manager = await user('manager');
     const administrator = await user('admin');
 

@@ -1,0 +1,19 @@
+info:
+  name: Educator - Get own group children
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/groups/{{groupId}}/children"
+  headers:
+    - name: Authorization
+      value: "Bearer {{educatorToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Educator can view own group children", function () {
+          expect(res.status).to.equal(200);
+        });

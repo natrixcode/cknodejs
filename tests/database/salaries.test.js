@@ -1,4 +1,3 @@
-
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -69,30 +68,30 @@ test('Salaries SQL business logic', {
       return Number(Object.values(result.rows[0])[0]);
     }
 
-   async function createEmployee(
-  position = 'teacher',
-  status = 'active',
-  salaryAmount = 10000
-) {
-  const n = ++counter;
+    async function createEmployee(
+      position = 'teacher',
+      status = 'active',
+      salaryAmount = 10000
+    ) {
+      const n = ++counter;
 
-  const result = await db.query(
-    `INSERT INTO employees
-      (first_name, last_name, phone,
-       position, salary, status)
-     VALUES ('Test', $1, $2, $3, $4, $5)
-     RETURNING id`,
-    [
-      `Employee${n}`,
-      `38050${String(n).padStart(7, '0')}`,
-      position,
-      salaryAmount,
-      status,
-    ]
-  );
+      const result = await db.query(
+        `INSERT INTO employees
+          (first_name, last_name, phone,
+           position, salary, status)
+         VALUES ('Test', $1, $2, $3, $4, $5)
+         RETURNING id`,
+        [
+          `Employee${n}`,
+          `38050${String(n).padStart(7, '0')}`,
+          position,
+          salaryAmount,
+          status,
+        ]
+      );
 
-  return result.rows[0].id;
-}
+      return result.rows[0].id;
+    }
 
     async function createGroup() {
       const n = ++counter;
@@ -300,7 +299,6 @@ test('Salaries SQL business logic', {
       await assignEmployee(groupId, educatorId, 'educator');
       await addChildren(groupId, 12);
 
-      // 12 * 2000 = 24000
       assert.equal(await salary(educatorId), 24000);
     });
 
@@ -311,7 +309,6 @@ test('Salaries SQL business logic', {
       await assignEmployee(groupId, educatorId, 'educator');
       await addChildren(groupId, 13);
 
-      // 13 * 2000 + 1 * 5000 = 31000
       assert.equal(await salary(educatorId), 31000);
     });
 
@@ -322,7 +319,6 @@ test('Salaries SQL business logic', {
       await assignEmployee(groupId, assistantId, 'assistant');
       await addChildren(groupId, 13);
 
-      // 20000 + 1 * 3000 = 23000
       assert.equal(await salary(assistantId), 23000);
     });
 
@@ -341,29 +337,38 @@ test('Salaries SQL business logic', {
       );
     });
 
-       await scenario('15. Calculate fixed salaries for director, cook, nurse and accountant', async () => {
-      const positions = [
-        'director',
-        'cook',
-        'nurse',
-        'accountant',
-      ];
+    await scenario(
+      '15. Calculate fixed salaries for director, cook, nurse and accountant',
+      async () => {
+        const positions = [
+          'director',
+          'cook',
+          'nurse',
+          'accountant',
+        ];
 
-      for (const position of positions) {
-        const expectedSalary = 15000;
-        const employeeId = await createEmployee(
-          position,
-          'active',
-          expectedSalary
-        );
+        for (const position of positions) {
+          const expectedSalary = 15000;
 
-        assert.equal(
-          await salary(employeeId),
-          expectedSalary,
-          `${position} should receive the salary from employees.salary`
-        );
+          const employeeId = await createEmployee(
+            position,
+            'active',
+            expectedSalary
+          );
+
+          const employee = await db.query(
+            'SELECT salary FROM employees WHERE id = $1',
+            [employeeId]
+          );
+
+          assert.equal(
+            await salary(employeeId),
+            Number(employee.rows[0].salary),
+            `${position} should receive the salary from employees.salary`
+          );
+        }
       }
-    });
+    );
 
     await scenario('16. Reject nonexistent employee', async () => {
       await assert.rejects(
