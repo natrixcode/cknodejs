@@ -1,0 +1,22 @@
+info:
+  name: conn
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/employees/2/subjects
+  body:
+    type: json
+    data: |-
+      {
+        "subject_ids": [1]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

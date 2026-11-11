@@ -45,24 +45,12 @@ app.use(
 );
 
 // Protected API routes
-app.use(`${API_PREFIX}/discounts`, requireAuth, discountsRouter);
-app.use(`${API_PREFIX}/employees`, requireAuth, employeesRouter);
-app.use(`${API_PREFIX}/expenses`, requireAuth, expensesRouter);
-app.use(`${API_PREFIX}/food`, requireAuth, foodRouter);
-app.use(`${API_PREFIX}/groups`, requireAuth, groupsRouter);
-app.use(`${API_PREFIX}/health`, requireAuth, healthRouter);
-app.use(`${API_PREFIX}/invoices`, requireAuth, invoicesRouter);
-app.use(`${API_PREFIX}/parents`, requireAuth, parentsRouter);
-app.use(`${API_PREFIX}/payments`, requireAuth, paymentsRouter);
-app.use(`${API_PREFIX}/reports`, requireAuth, reportsRouter);
-app.use(`${API_PREFIX}/rooms`, requireAuth, roomsRouter);
-app.use(`${API_PREFIX}/salaries`, requireAuth, salariesRouter);
-app.use(`${API_PREFIX}/schedule`, requireAuth, scheduleRouter);
-app.use(`${API_PREFIX}/daily-blocks`, requireAuth, dailyBlocksRouter);
-app.use(`${API_PREFIX}/settings`, requireAuth, settingsRouter);
-app.use(`${API_PREFIX}/subjects`, requireAuth, subjectsRouter);
-app.use(`${API_PREFIX}/tuition`, requireAuth, tuitionRouter);
-app.use(`${API_PREFIX}/users`, requireAuth, usersRouter);
+
+
+
+
+
+
 app.use(`${API_PREFIX}/history`, requireAuth, historyRouter);
 app.use(`${API_PREFIX}/attendance`, requireAuth, attendanceRouter);
 

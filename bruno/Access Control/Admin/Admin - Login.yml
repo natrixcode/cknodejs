@@ -13,8 +13,8 @@ http:
     type: json
     data: |-
       {
-        "username": "{{admin_username}}",
-        "password": "{{admin_password}}"
+        "username": "test_admin",
+        "password": "DemoAdmin2026!"
       }
   auth: inherit
 
@@ -22,11 +22,10 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        const body = res.getBody();
+        const response = res.getBody();
 
-        if (res.getStatus() === 200 && body.data?.token) {
-          bru.setVar('adminToken', body.data.token);
-        }
+        bru.setEnvVar('adminToken', response.data.token);
+        bru.setEnvVar('token', response.data.token);
 
 settings:
   encodeUrl: true

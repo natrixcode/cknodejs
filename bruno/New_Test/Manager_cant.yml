@@ -1,0 +1,18 @@
+info:
+  name: Manager_cant
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: http://localhost:3000/api/v1/schedule/publish
+  auth:
+    type: bearer
+    token: 7d62ef6a166374fb5354dda5a3f8c1e3492d4193ba57be2e7fe30822fdef4d17
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

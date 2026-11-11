@@ -8,7 +8,10 @@ http:
   url: "{{baseUrl}}/children/{{ownChildId}}"
   headers:
     - name: Authorization
-      value: "Bearer {{parentToken}}"
+      value: Bearer {{parentToken}}
+  auth:
+    type: bearer
+    token: 8b50f9f5995786e90fc796df390ca2457200050941333341afb8fec61b675a98
 
 runtime:
   scripts:
@@ -17,3 +20,10 @@ runtime:
         test("Parent can view own child", function () {
           expect(res.status).to.equal(200);
         });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

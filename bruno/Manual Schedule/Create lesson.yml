@@ -20,4 +20,11 @@ http:
       }
   auth:
     type: bearer
-    token: "{{token}}"
+    token: d08aab6072ba70b7777ccbb7be593902d6a757c57714feb80ef50827d7ebcc0a
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
