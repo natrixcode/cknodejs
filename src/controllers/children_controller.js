@@ -153,3 +153,21 @@ export async function getChildSchedule(req, res, next) {
     next(error);
   }
 }
+
+export async function getChildAttendance(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { from, to } = req.query;
+
+    const result = await service.getChildAttendance(
+      id,
+      req.user,
+      from ?? null,
+      to ?? null
+    );
+
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    next(error);
+  }
+}
