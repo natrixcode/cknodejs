@@ -13,16 +13,18 @@ import {
   getChildGroups,
   getChildInvoices,
   getChildPayments,
-  getChildSchedule
+  getChildSchedule,
+  getChildAttendance
 } from '../controllers/children_controller.js';
 
 import {
   createChildSchema,
   updateChildSchema,
-  archiveChildSchema
+  archiveChildSchema,
+  attendanceQuerySchema
 } from '../validators/child_validator.js';
 
-import { validateBody } from '../middleware/validate.js';
+import { validateBody, validateQuery } from '../middleware/validate.js';
 
 const router = Router();
 router.param('id', validateRouteId);
@@ -94,4 +96,15 @@ router.get(
   requireRole('admin', 'manager'),
   getChildSchedule
 );
+
+
+router.get(
+  '/:id/attendance',
+  requireRole('parent', 'admin', 'manager'),
+  validateQuery(attendanceQuerySchema),
+  getChildAttendance
+);
+
+
+
 export default router;

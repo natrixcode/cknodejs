@@ -1,3 +1,4 @@
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -189,6 +190,13 @@ test('Issue #53: attendance SQL and HTTP', {
     const foreignChild = await child(groupB);
     const unmarkedChild = await child(groupA);
 
+    // Parent may read only the attendance of their linked child.
+    await db.query(
+      `INSERT INTO children_parents (child_id, parent_id)
+       VALUES ($1, $2)`,
+      [ownChild, parentId]
+    );
+
     const markSql = (
       actor = educator,
       childId = ownChild,
@@ -235,6 +243,16 @@ test('Issue #53: attendance SQL and HTTP', {
         .get(`/api/v1/groups/${groupId}/attendance`)
         .query({ date })
         .set('Authorization', `Bearer ${actor.token}`);
+
+    const getChildAttendance = (actor, childId = ownChild, query = {}) => {
+      const call = request(app)
+        .get(`/api/v1/children/${childId}/attendance`)
+        .query(query);
+
+      return actor
+        ? call.set('Authorization', `Bearer ${actor.token}`)
+        : call;
+    };
 
     let todayRecord;
     let oldRecord;
@@ -482,6 +500,94 @@ test('Issue #53: attendance SQL and HTTP', {
         () => markSql(educator, movedChild),
         'KMS_ATTENDANCE_FORBIDDEN'
       );
+    });
+
+    await t.test('HTTP: child attendance requires authentication', async () => {
+      const response = await getChildAttendance(null);
+      assert.equal(response.status, 401, JSON.stringify(response.body));
+    });
+
+    await t.test('HTTP: parent can read own child records', async () => {
+      const response = await getChildAttendance(parent);
+      assert.equal(response.status, 200, JSON.stringify(response.body));
+      assert.equal(response.body.status, 'success');
+      assert.ok(Array.isArray(response.body.data));
+      assert.equal(response.body.data.length, 2);
+      assert.deepEqual(
+        response.body.data.map(row => row.attendance_date),
+        [today, yesterday]
+      );
+      assert.equal(response.body.data[0].present, true);
+      assert.equal(response.body.data[0].reason, null);
+      assert.equal(response.body.data[1].present, false);
+      assert.equal(response.body.data[1].reason, null);
+    });
+
+    await t.test('HTTP: parent cannot read unrelated child attendance', async () => {
+      const response = await getChildAttendance(parent, foreignChild);
+      assert.equal(response.status, 403, JSON.stringify(response.body));
+    });
+
+    await t.test('HTTP: admin and manager can read child attendance', async () => {
+      for (const actor of [administrator, manager]) {
+        const response = await getChildAttendance(actor);
+        assert.equal(response.status, 200, JSON.stringify(response.body));
+        assert.equal(response.body.data.length, 2);
+      }
+    });
+
+    await t.test('HTTP: employee cannot read parent child attendance endpoint', async () => {
+      const response = await getChildAttendance(educator);
+      assert.equal(response.status, 403, JSON.stringify(response.body));
+    });
+
+    await t.test('HTTP: child attendance filters include both boundaries', async () => {
+      const both = await getChildAttendance(parent, ownChild, {
+        from: yesterday,
+        to: today
+      });
+      assert.equal(both.status, 200, JSON.stringify(both.body));
+      assert.deepEqual(
+        both.body.data.map(row => row.attendance_date),
+        [today, yesterday]
+      );
+
+      const todayOnly = await getChildAttendance(parent, ownChild, {
+        from: today,
+        to: today
+      });
+      assert.equal(todayOnly.status, 200, JSON.stringify(todayOnly.body));
+      assert.deepEqual(
+        todayOnly.body.data.map(row => row.attendance_date),
+        [today]
+      );
+
+      const pastOnly = await getChildAttendance(parent, ownChild, {
+        to: yesterday
+      });
+      assert.equal(pastOnly.status, 200, JSON.stringify(pastOnly.body));
+      assert.deepEqual(
+        pastOnly.body.data.map(row => row.attendance_date),
+        [yesterday]
+      );
+
+      const empty = await getChildAttendance(parent, ownChild, {
+        from: tomorrow
+      });
+      assert.equal(empty.status, 200, JSON.stringify(empty.body));
+      assert.deepEqual(empty.body.data, []);
+    });
+
+    await t.test('HTTP: child attendance rejects invalid date filters', async () => {
+      for (const query of [
+        { from: today, to: yesterday },
+        { from: '2026-02-30' },
+        { from: 'not-a-date' },
+        { unexpected: 'value' }
+      ]) {
+        const response = await getChildAttendance(parent, ownChild, query);
+        assert.equal(response.status, 400, JSON.stringify(response.body));
+      }
     });
 
     await t.test('HTTP: own child 201, repeated mark 200', async () => {

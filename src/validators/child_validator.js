@@ -30,3 +30,14 @@ export const archiveChildSchema = z.strictObject({
 export const childIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
+
+export const attendanceQuerySchema = z.strictObject({
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
+}).refine(
+  (data) => !data.from || !data.to || data.from <= data.to,
+  {
+    message: 'from must be before or equal to to',
+    path: ['to'],
+  }
+);
