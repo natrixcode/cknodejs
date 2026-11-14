@@ -180,3 +180,13 @@ export async function getChildSchedule(id) {
     )
   );
 }
+
+export async function getChildAttendance(id, user, from = null, to = null) {
+  return ok(
+    await rows(
+      `SELECT *
+       FROM kms_parent_child_attendance($1, $2, $3, $4)`,
+      [user.id, id, from, to]
+    )
+  );
+}
