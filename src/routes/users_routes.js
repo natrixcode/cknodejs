@@ -7,7 +7,8 @@ import {
   createUser,
   updateUser,
   updateUserRole,
-  updateUserStatus
+  updateUserStatus,
+  deactivateUser
 } from '../controllers/users_controller.js';
 import {
   requireAuth,
@@ -77,6 +78,7 @@ const statusSchema = z.strictObject({
 
 router.get('/', getUsers);
 router.get('/:id', getUserById);
+router.delete('/:id', deactivateUser);
 
 router.post(
   '/',

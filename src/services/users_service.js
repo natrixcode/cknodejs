@@ -3,7 +3,7 @@ import {
 } from '../utils/password.js';
 
 import {
-  ok, fail, missing, rows, one
+  ok, fail, missing, rows, one, withActor
 } from './_common.js';
 
 import {
@@ -15,14 +15,25 @@ const publicFields = `
   parent_id, employee_id, created_at
 `;
 
-export async function getUsers() {
+export async function getUsers(includeInactive = false) {
   return ok(
     await rows(
       `SELECT ${publicFields}
        FROM users
-       ORDER BY id`
+       WHERE is_active = true OR $1::boolean
+       ORDER BY id`,
+      [includeInactive]
     )
   );
+}
+
+export async function deactivateUser(id) {
+  const result = await withActor(db => one(
+    'SELECT kms_deactivate_user($1) AS found', [id], db
+  ));
+  if (!result.found) return missing();
+  revokeUserSessions(id);
+  return { status: 204, noContent: true };
 }
 
 export async function getUserById(id) {
