@@ -1,7 +1,7 @@
 
 import {
   ok, fail, missing,
-  list, byId, patch, rows, one, transaction
+  byId, patch, rows, one, transaction
 } from './_common.js';
 
 const fields = [
@@ -13,8 +13,20 @@ const fields = [
   'end_time'
 ];
 
-export const getSchedules = () =>
-  list('schedule');
+// Issue #73: who sees which lessons and the teacher/room filters
+// are decided in SQL by kms_list_schedule (migration 0033).
+export async function getSchedules(userId, filters = {}) {
+  const result = await rows(
+    'SELECT * FROM kms_list_schedule($1, $2, $3)',
+    [
+      userId,
+      filters.teacher_id ?? null,
+      filters.room_id ?? null
+    ]
+  );
+
+  return ok(result);
+}
 
 export const getScheduleById = id =>
   byId('schedule', id);
