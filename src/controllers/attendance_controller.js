@@ -27,11 +27,12 @@ export async function correctAttendance(req, res, next) {
   }
 }
 
+
 export async function getGroupAttendance(req, res, next) {
   try {
     const result = await service.getGroupAttendance(
       req.user.id,
-      req.params.id,
+      req.attendanceQuery.group_id,
       req.attendanceQuery.date
     );
 
