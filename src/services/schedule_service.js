@@ -13,8 +13,7 @@ const fields = [
   'end_time'
 ];
 
-// Issue #73: who sees which lessons and the teacher/room filters
-// are decided in SQL by kms_list_schedule (migration 0033).
+// Issue #73: access control and teacher/room filters are enforced in SQL.
 export async function getSchedules(userId, filters = {}) {
   const result = await rows(
     'SELECT * FROM kms_list_schedule($1, $2, $3)',
@@ -176,4 +175,30 @@ export async function publishSchedule(data) {
       group_days: days.size
     });
   });
+}
+
+export async function getScheduleOverview({ group_id, date }) {
+  return ok(await rows(
+    `SELECT id, group_id, 'lesson'::text AS type,
+            NULL::text AS kind, status::text AS status,
+            subject_id, teacher_id, room_id,
+            start_time, end_time
+       FROM schedule
+      WHERE group_id = $1::bigint
+        AND (start_time AT TIME ZONE 'Europe/Kyiv')::date = $2::date
+
+      UNION ALL
+
+     SELECT id, group_id, 'daily_block'::text AS type,
+            kind::text AS kind, NULL::text AS status,
+            NULL::bigint AS subject_id,
+            NULL::bigint AS teacher_id,
+            NULL::bigint AS room_id,
+            start_time, end_time
+       FROM kms_daily_blocks
+      WHERE group_id = $1::bigint AND block_date = $2::date
+
+      ORDER BY start_time, end_time, type, id`,
+    [group_id, date]
+  ));
 }

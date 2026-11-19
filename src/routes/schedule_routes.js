@@ -9,6 +9,7 @@ import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getSchedules,
+  getScheduleOverview,
   getScheduleById,
   createSchedule,
   updateSchedule,
@@ -21,8 +22,10 @@ import {
 import {
   scheduleSchema,
   generateScheduleSchema,
-  scheduleListQuerySchema
+  scheduleListQuerySchema,
+  scheduleOverviewQuerySchema
 } from '../validators/schedule_validator.js';
+import { pool } from '../config/database.js';
 
 const router = Router();
 
@@ -91,8 +94,49 @@ const publishScheduleSchema = z.strictObject({
 });
 
 
-// Issue #73: teachers and educators may list too; which lessons they
-// see, and the 403 for another teacher, are decided by kms_list_schedule.
+function validateOverviewQuery(req, res, next) {
+  const parsed = scheduleOverviewQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: 'Invalid query',
+      issues: parsed.error.issues
+    });
+  }
+  req.scheduleQuery = parsed.data;
+  next();
+}
+
+async function overviewAccess(req, res, next) {
+  try {
+    if (['admin', 'manager'].includes(req.user.role)) return next();
+
+    if (req.user.role !== 'employee' ||
+        req.user.employee_position?.toLowerCase() !== 'educator') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const result = await pool.query(
+      'SELECT kms_can_view_group_children($1, $2) AS allowed',
+      [req.user.id, req.scheduleQuery.group_id]
+    );
+
+    if (!result.rows[0]?.allowed) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+router.get(
+  '/overview',
+  validateOverviewQuery,
+  overviewAccess,
+  getScheduleOverview
+);
+
+// Issue #73: SQL enforces teacher/educator schedule visibility.
 router.get(
   '/',
   requireRole('admin', 'manager', 'employee'),

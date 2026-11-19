@@ -2,7 +2,7 @@ import * as service from '../services/schedule_service.js';
 
 export async function getSchedules(req, res, next) {
   try {
-    const result = await service.getSchedules(
+const result = await service.getSchedules(
       req.user.id,
       res.locals.validatedQuery
     );
@@ -109,6 +109,15 @@ export async function publishSchedule(req, res, next) {
       return res.sendStatus(result.status);
     }
 
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getScheduleOverview(req, res, next) {
+  try {
+    const result = await service.getScheduleOverview(req.scheduleQuery);
     return res.status(result.status).json(result.body);
   } catch (error) {
     next(error);

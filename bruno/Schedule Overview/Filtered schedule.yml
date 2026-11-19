@@ -1,0 +1,14 @@
+info:
+  name: Filtered schedule
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:3000/api/v1/schedule?group_id=1&date=2026-11-19&status=published
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+
+settings:
+  encodeUrl: true

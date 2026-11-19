@@ -73,3 +73,24 @@ export const scheduleSchema = z.strictObject({
     });
   }
 });
+
+const queryDate = z.iso.date();
+const queryGroupId = z.string()
+  .regex(/^[1-9]\d*$/)
+  .refine(v => BigInt(v) <= 9223372036854775807n);
+
+export const scheduleQuerySchema = z.strictObject({
+  date: queryDate.optional(),
+  group_id: queryGroupId.optional(),
+  from: queryDate.optional(),
+  to: queryDate.optional(),
+  status: z.enum(['draft', 'published']).optional()
+}).refine(
+  q => !q.from || !q.to || q.from <= q.to,
+  { path: ['to'], message: 'to must be >= from' }
+);
+
+export const scheduleOverviewQuerySchema = z.strictObject({
+  group_id: queryGroupId,
+  date: queryDate
+});
