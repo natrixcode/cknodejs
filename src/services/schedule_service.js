@@ -13,8 +13,33 @@ const fields = [
   'end_time'
 ];
 
-export const getSchedules = () =>
-  list('schedule');
+export async function getSchedules(filters = {}) {
+  const conditions = [];
+  const params = [];
+
+  function add(condition, value) {
+    params.push(value);
+    conditions.push(condition.replace('?', '$' + params.length));
+  }
+
+  if (filters.group_id) add('group_id = ?::bigint', filters.group_id);
+  if (filters.status) add('status = ?', filters.status);
+  if (filters.date) {
+    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date = ?::date", filters.date);
+  }
+  if (filters.from) {
+    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date >= ?::date", filters.from);
+  }
+  if (filters.to) {
+    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date <= ?::date", filters.to);
+  }
+
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+  return ok(await rows(
+    'SELECT * FROM schedule ' + where + ' ORDER BY start_time, id',
+    params
+  ));
+}
 
 export const getScheduleById = id =>
   byId('schedule', id);
@@ -164,4 +189,30 @@ export async function publishSchedule(data) {
       group_days: days.size
     });
   });
+}
+
+export async function getScheduleOverview({ group_id, date }) {
+  return ok(await rows(
+    `SELECT id, group_id, 'lesson'::text AS type,
+            NULL::text AS kind, status::text AS status,
+            subject_id, teacher_id, room_id,
+            start_time, end_time
+       FROM schedule
+      WHERE group_id = $1::bigint
+        AND (start_time AT TIME ZONE 'Europe/Kyiv')::date = $2::date
+
+      UNION ALL
+
+     SELECT id, group_id, 'daily_block'::text AS type,
+            kind::text AS kind, NULL::text AS status,
+            NULL::bigint AS subject_id,
+            NULL::bigint AS teacher_id,
+            NULL::bigint AS room_id,
+            start_time, end_time
+       FROM kms_daily_blocks
+      WHERE group_id = $1::bigint AND block_date = $2::date
+
+      ORDER BY start_time, end_time, type, id`,
+    [group_id, date]
+  ));
 }

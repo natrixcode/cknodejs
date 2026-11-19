@@ -9,6 +9,7 @@ import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
   getSchedules,
+  getScheduleOverview,
   getScheduleById,
   createSchedule,
   updateSchedule,
@@ -18,7 +19,11 @@ import {
   publishSchedule
 } from '../controllers/schedule_controller.js';
 
-import { scheduleSchema, generateScheduleSchema } from '../validators/schedule_validator.js';
+import {
+  scheduleSchema, generateScheduleSchema,
+  scheduleQuerySchema, scheduleOverviewQuerySchema
+} from '../validators/schedule_validator.js';
+import { pool } from '../config/database.js';
 
 const router = Router();
 
@@ -87,9 +92,55 @@ const publishScheduleSchema = z.strictObject({
 });
 
 
+
+function validateQuery(schema) {
+  return (req, res, next) => {
+    const parsed = schema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: 'Invalid query',
+        issues: parsed.error.issues
+      });
+    }
+    req.scheduleQuery = parsed.data;
+    next();
+  };
+}
+
+async function overviewAccess(req, res, next) {
+  try {
+    if (['admin', 'manager'].includes(req.user.role)) return next();
+
+    if (req.user.role !== 'employee' ||
+        req.user.employee_position?.toLowerCase() !== 'educator') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const result = await pool.query(
+      'SELECT kms_can_view_group_children($1, $2) AS allowed',
+      [req.user.id, req.scheduleQuery.group_id]
+    );
+
+    if (!result.rows[0]?.allowed) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+router.get(
+  '/overview',
+  validateQuery(scheduleOverviewQuerySchema),
+  overviewAccess,
+  getScheduleOverview
+);
+
 router.get(
   '/',
   requireRole('admin', 'manager'),
+  validateQuery(scheduleQuerySchema),
   getSchedules
 );
 
