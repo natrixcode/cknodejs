@@ -238,11 +238,11 @@ test('Issue #53: attendance SQL and HTTP', {
         .set('Authorization', `Bearer ${actor.token}`)
         .send(body);
 
-    const get = (actor, groupId = groupA, date = today) =>
-      request(app)
-        .get(`/api/v1/groups/${groupId}/attendance`)
-        .query({ date })
-        .set('Authorization', `Bearer ${actor.token}`);
+const get = (actor, groupId = groupA, date = today) =>
+  request(app)
+    .get('/api/v1/attendance')
+    .query({ group_id: groupId, date })
+    .set('Authorization', `Bearer ${actor.token}`);
 
     const getChildAttendance = (actor, childId = ownChild, query = {}) => {
       const call = request(app)
@@ -677,21 +677,91 @@ test('Issue #53: attendance SQL and HTTP', {
       )).status, 422);
     });
 
-    await t.test('HTTP: group report access matrix', async () => {
-      assert.equal((await get(educator)).status, 200);
-      assert.equal((await get(educator, groupB)).status, 403);
+await t.test('HTTP: group report access matrix', async () => {
+  const educatorResponse = await get(educator);
 
-      for (const actor of [manager, administrator]) {
-        assert.equal((await get(actor, groupA)).status, 200);
-        assert.equal((await get(actor, groupB)).status, 200);
-      }
+assert.equal(
+  educatorResponse.status,
+  200,
+  JSON.stringify(educatorResponse.body)
+);
+assert.equal(educatorResponse.body.status, 'success');
 
-      for (const actor of [assistant, teacher, legacyTeacher, parent]) {
-        assert.equal((await get(actor)).status, 403);
-      }
+const children = educatorResponse.body.data;
 
-      assert.equal((await get(educator, groupA, tomorrow)).status, 422);
-    });
+assert.ok(Array.isArray(children));
+
+const marked = children.find(
+  row => String(row.child_id) === String(ownChild)
+);
+
+const unmarked = children.find(
+  row => String(row.child_id) === String(unmarkedChild)
+);
+
+assert.ok(marked, 'Звіт має містити дитину з відміткою');
+assert.equal(typeof marked.first_name, 'string');
+assert.equal(typeof marked.last_name, 'string');
+assert.ok(marked.attendance);
+assert.equal(typeof marked.attendance.present, 'boolean');
+
+assert.ok(unmarked, 'Звіт має містити дитину без відмітки');
+assert.equal(unmarked.attendance, null);
+
+  for (const actor of [manager, administrator]) {
+    for (const groupId of [groupA, groupB]) {
+      const response = await get(actor, groupId);
+
+      assert.equal(
+        response.status,
+        200,
+        JSON.stringify(response.body)
+      );
+    }
+  }
+
+  assert.equal((await get(educator, groupB)).status, 403);
+
+  for (const actor of [assistant, teacher, legacyTeacher, parent]) {
+    assert.equal((await get(actor)).status, 403);
+  }
+
+  assert.equal((await get(educator, groupA, tomorrow)).status, 422);
+});
+
+
+
+await t.test('HTTP: group report requires authentication and valid query', async () => {
+  const unauthorized = await request(app)
+    .get('/api/v1/attendance')
+    .query({ group_id: groupA, date: today });
+
+  assert.equal(unauthorized.status, 401);
+
+  const invalidQueries = [
+    {},
+    { date: today },
+    { group_id: groupA },
+    { group_id: 'invalid', date: today },
+    { group_id: groupA, date: '2026-02-30' },
+    { group_id: groupA, date: 'not-a-date' },
+    { group_id: groupA, date: today, unexpected: 'value' }
+  ];
+
+  for (const query of invalidQueries) {
+    const response = await request(app)
+      .get('/api/v1/attendance')
+      .query(query)
+      .set('Authorization', `Bearer ${educator.token}`);
+
+    assert.equal(
+      response.status,
+      400,
+      `Query ${JSON.stringify(query)}: ${JSON.stringify(response.body)}`
+    );
+  }
+});
+
 
     await t.test('HTTP: strict validation rejects forged authors and bad input', async () => {
       for (const body of [

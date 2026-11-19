@@ -27,7 +27,9 @@ export const correctAttendanceSchema = z.strictObject({
   { message: 'Потрібно передати хоча б одне поле' }
 );
 
+
 export const attendanceQuerySchema = z.strictObject({
+  group_id: idSchema,
   date: z.iso.date()
 });
 
@@ -36,7 +38,7 @@ export function validateAttendanceQuery(req, res, next) {
 
   if (!result.success) {
     return res.status(400).json({
-      message: 'Некоректна дата звіту',
+      message: 'Некоректні параметри звіту',
       errors: result.error.issues.map(issue => ({
         field: issue.path.join('.'),
         message: issue.message
