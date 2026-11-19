@@ -30,4 +30,4 @@ variables:
     name: admin_password
     description: Local admin password
   - name: teacherToken
-    value: b9232f31d82b5a25cfd9b8e81b857f7021ddf318e87efcf079b09b49ac17b8b4
+    value: ""

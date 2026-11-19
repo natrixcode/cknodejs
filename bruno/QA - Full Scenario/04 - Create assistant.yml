@@ -1,0 +1,30 @@
+info:
+  name: 04 - Create assistant
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/employees"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "QA",
+        "last_name": "Assistant",
+        "email": "qa.assistant@example.test",
+        "phone": "380501234502",
+        "position": "assistant",
+        "salary": 20000,
+        "status": "active"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

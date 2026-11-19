@@ -1,0 +1,40 @@
+info:
+  name: 27 - Create teacher
+  type: http
+  seq: 27
+
+http:
+  method: POST
+  url: "{{baseUrl}}/employees"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "QA",
+        "last_name": "Teacher",
+        "email": "qa.teacher@example.test",
+        "phone": "380501234504",
+        "position": "teacher",
+        "salary": 40000,
+        "status": "active"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('teacherId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

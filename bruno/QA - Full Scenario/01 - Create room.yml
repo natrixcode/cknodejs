@@ -1,0 +1,36 @@
+info:
+  name: 01 - Create room
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/rooms"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Room 01",
+        "capacity": 20,
+        "status": "available"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('roomId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

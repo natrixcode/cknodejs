@@ -13,7 +13,7 @@ http:
         "username": "test_manager",
         "name": "Test Manager",
         "email": "test.manager@example.com",
-        "password": "DemoManager2026!",
+        "password": "{{manager_password}}",
         "role": "manager"
       }
   auth:

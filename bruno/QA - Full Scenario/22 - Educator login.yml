@@ -1,0 +1,32 @@
+info:
+  name: 22 - Educator login
+  type: http
+  seq: 22
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "{{educator_username}}",
+        "password": "{{educator_password}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 200 && body?.data?.token) {
+          bru.setVar('educatorToken', body.data.token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

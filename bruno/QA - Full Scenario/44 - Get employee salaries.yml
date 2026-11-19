@@ -1,0 +1,18 @@
+info:
+  name: 44 - Get employee salaries
+  type: http
+  seq: 44
+
+http:
+  method: GET
+  url: "{{baseUrl}}/salaries/1/salaries"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

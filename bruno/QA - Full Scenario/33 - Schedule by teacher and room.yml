@@ -1,0 +1,25 @@
+info:
+  name: 33 - Schedule by teacher and room
+  type: http
+  seq: 33
+
+http:
+  method: GET
+  url: "{{baseUrl}}/schedule?teacher_id=7&room_id=1"
+  params:
+    - name: teacher_id
+      value: "7"
+      type: query
+    - name: room_id
+      value: "1"
+      type: query
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

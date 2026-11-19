@@ -1,0 +1,40 @@
+info:
+  name: 21 - Create educator user
+  type: http
+  seq: 21
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Educator",
+        "email": "qa.educator.user@example.test",
+        "username": "qa_educator",
+        "password": "{{educator_password}}",
+        "role": "employee",
+        "status": "active",
+        "employee_id": 1
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('educatorUserId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,31 @@
+info:
+  name: 42 - Calculate educator salary
+  type: http
+  seq: 42
+
+http:
+  method: POST
+  url: "{{baseUrl}}/salaries/calculate"
+  body:
+    type: json
+    data: |
+      {
+        "employee_id": 1,
+        "period_start": "2026-11-01",
+        "period_end": "2026-11-30",
+        "base_salary": 40000,
+        "bonus": 0,
+        "deductions": 0,
+        "currency": "UAH",
+        "parameters": {}
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

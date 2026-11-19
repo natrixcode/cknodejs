@@ -1,0 +1,39 @@
+info:
+  name: 40 - Register payment
+  type: http
+  seq: 40
+
+http:
+  method: POST
+  url: "{{baseUrl}}/payments"
+  body:
+    type: json
+    data: |
+      {
+        "invoice_id": 1,
+        "amount": 10000,
+        "payment_date": "2026-11-19T20:30:00+02:00",
+        "method": "bank_transfer",
+        "transaction_id": "QA-ISSUE77-PAYMENT-001",
+        "currency": "UAH"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('paymentId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

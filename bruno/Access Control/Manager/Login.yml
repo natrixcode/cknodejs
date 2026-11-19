@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "username": "demo_manager",
-        "password": "123456789011"
+        "password": "{{manager_password}}"
       }
   auth: inherit
 

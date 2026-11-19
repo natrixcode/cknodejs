@@ -1,0 +1,37 @@
+info:
+  name: 24 - Mark child attendance
+  type: http
+  seq: 24
+
+http:
+  method: POST
+  url: "{{baseUrl}}/attendance"
+  body:
+    type: json
+    data: |-
+      {
+        "child_id": 2,
+        "date": "2026-11-19",
+        "present": true,
+        "reason": null
+      }
+  auth:
+    type: bearer
+    token: "{{educatorToken}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('attendanceId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

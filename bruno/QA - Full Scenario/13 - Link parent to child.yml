@@ -1,0 +1,23 @@
+info:
+  name: 13 - Link parent to child
+  type: http
+  seq: 13
+
+http:
+  method: POST
+  url: "{{baseUrl}}/parents/{{parentId}}/children"
+  body:
+    type: json
+    data: |-
+      {
+        "child_id": 2,
+        "relationship_type": "parent"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,35 @@
+info:
+  name: 26 - Create subject
+  type: http
+  seq: 26
+
+http:
+  method: POST
+  url: "{{baseUrl}}/subjects"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA English",
+        "description": "Тестовий предмет для перевірки фільтрації розкладу Issue #77"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('subjectId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

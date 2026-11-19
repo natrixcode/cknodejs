@@ -1,0 +1,16 @@
+services:
+  qa-server:
+    image: cknodejs-server:0.1.0
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: kindergarten_qa
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy

@@ -1,0 +1,18 @@
+info:
+  name: 48 - Deactivate parent user
+  type: http
+  seq: 48
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/users/2"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

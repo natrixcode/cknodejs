@@ -1,0 +1,28 @@
+info:
+  name: 51 - Create nap
+  type: http
+  seq: 51
+
+http:
+  method: POST
+  url: "{{baseUrl}}/daily-blocks"
+  body:
+    type: json
+    data: |
+      {
+        "group_id": 1,
+        "block_date": "2026-11-23",
+        "kind": "nap",
+        "start_time": "2026-11-23T13:00:00+02:00",
+        "end_time": "2026-11-23T14:00:00+02:00"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
