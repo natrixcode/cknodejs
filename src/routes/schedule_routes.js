@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
-import { validateBody } from '../middleware/validate.js';
+import { validateBody, validateQuery } from '../middleware/validate.js';
 import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
@@ -20,8 +20,10 @@ import {
 } from '../controllers/schedule_controller.js';
 
 import {
-  scheduleSchema, generateScheduleSchema,
-  scheduleQuerySchema, scheduleOverviewQuerySchema
+  scheduleSchema,
+  generateScheduleSchema,
+  scheduleListQuerySchema,
+  scheduleOverviewQuerySchema
 } from '../validators/schedule_validator.js';
 import { pool } from '../config/database.js';
 
@@ -92,19 +94,16 @@ const publishScheduleSchema = z.strictObject({
 });
 
 
-
-function validateQuery(schema) {
-  return (req, res, next) => {
-    const parsed = schema.safeParse(req.query);
-    if (!parsed.success) {
-      return res.status(400).json({
-        message: 'Invalid query',
-        issues: parsed.error.issues
-      });
-    }
-    req.scheduleQuery = parsed.data;
-    next();
-  };
+function validateOverviewQuery(req, res, next) {
+  const parsed = scheduleOverviewQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: 'Invalid query',
+      issues: parsed.error.issues
+    });
+  }
+  req.scheduleQuery = parsed.data;
+  next();
 }
 
 async function overviewAccess(req, res, next) {
@@ -132,15 +131,16 @@ async function overviewAccess(req, res, next) {
 
 router.get(
   '/overview',
-  validateQuery(scheduleOverviewQuerySchema),
+  validateOverviewQuery,
   overviewAccess,
   getScheduleOverview
 );
 
+// Issue #73: SQL enforces teacher/educator schedule visibility.
 router.get(
   '/',
-  requireRole('admin', 'manager'),
-  validateQuery(scheduleQuerySchema),
+  requireRole('admin', 'manager', 'employee'),
+  validateQuery(scheduleListQuerySchema),
   getSchedules
 );
 

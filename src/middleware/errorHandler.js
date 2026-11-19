@@ -13,6 +13,8 @@ const businessErrors = {
   KMS_SCHEDULE_ROOM_UNAVAILABLE: 422,
   KMS_SCHEDULE_INVALID_INTERVAL: 422,
   KMS_SCHEDULE_INVALID_EXCLUDE: 422,
+  // Issue #73 — schedule list access.
+  KMS_SCHEDULE_FORBIDDEN: 403,
   // 400 — некоректні дані або параметри
   KMS_CHILD_AGE_OUT_OF_RANGE: 400,
   KMS_CHILD_AGE_MISMATCH: 400,
@@ -61,6 +63,7 @@ const businessErrors = {
 
   // 409 — конфлікт із поточним станом
   KMS_AUDIT_IMMUTABLE: 409,
+  KMS_USER_DELETE_FORBIDDEN: 409,
   KMS_TRUNCATE_FORBIDDEN: 409,
   KMS_CHILD_ALREADY_ARCHIVED: 409,
   KMS_CHILD_NOT_ARCHIVED: 409,

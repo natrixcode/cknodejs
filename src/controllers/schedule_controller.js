@@ -2,7 +2,10 @@ import * as service from '../services/schedule_service.js';
 
 export async function getSchedules(req, res, next) {
   try {
-    const result = await service.getSchedules(req.scheduleQuery ?? {});
+const result = await service.getSchedules(
+      req.user.id,
+      res.locals.validatedQuery
+    );
 
     if (result.noContent) {
       return res.sendStatus(result.status);

@@ -1,7 +1,7 @@
 
 import {
   ok, fail, missing,
-  list, byId, patch, rows, one, transaction
+  byId, patch, rows, one, transaction
 } from './_common.js';
 
 const fields = [
@@ -13,32 +13,18 @@ const fields = [
   'end_time'
 ];
 
-export async function getSchedules(filters = {}) {
-  const conditions = [];
-  const params = [];
+// Issue #73: access control and teacher/room filters are enforced in SQL.
+export async function getSchedules(userId, filters = {}) {
+  const result = await rows(
+    'SELECT * FROM kms_list_schedule($1, $2, $3)',
+    [
+      userId,
+      filters.teacher_id ?? null,
+      filters.room_id ?? null
+    ]
+  );
 
-  function add(condition, value) {
-    params.push(value);
-    conditions.push(condition.replace('?', '$' + params.length));
-  }
-
-  if (filters.group_id) add('group_id = ?::bigint', filters.group_id);
-  if (filters.status) add('status = ?', filters.status);
-  if (filters.date) {
-    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date = ?::date", filters.date);
-  }
-  if (filters.from) {
-    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date >= ?::date", filters.from);
-  }
-  if (filters.to) {
-    add("(start_time AT TIME ZONE 'Europe/Kyiv')::date <= ?::date", filters.to);
-  }
-
-  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-  return ok(await rows(
-    'SELECT * FROM schedule ' + where + ' ORDER BY start_time, id',
-    params
-  ));
+  return ok(result);
 }
 
 export const getScheduleById = id =>

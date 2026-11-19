@@ -12,6 +12,23 @@ const timestampSchema = z.iso.datetime({
   offset: true,
 });
 
+// Query-string ID: a positive whole number within BIGINT range.
+const queryIdSchema = z.string()
+  .regex(/^[1-9]\d*$/, 'ID має бути додатним цілим числом')
+  .refine(
+    // Zod runs this check even when the regex failed, so only
+    // convert values that are already a valid digit string.
+    value => !/^[1-9]\d*$/.test(value) ||
+      BigInt(value) <= 9223372036854775807n,
+    { message: 'ID перевищує допустиме значення' }
+  );
+
+// Issue #73 — GET /api/v1/schedule filters.
+export const scheduleListQuerySchema = z.strictObject({
+  teacher_id: queryIdSchema.optional(),
+  room_id: queryIdSchema.optional(),
+});
+
 export const scheduleSchema = z.strictObject({
   group_id: z.number().int().positive(),
 
