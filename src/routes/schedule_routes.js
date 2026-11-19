@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireScheduleAccess } from '../middleware/scheduleAccess.js';
-import { validateBody } from '../middleware/validate.js';
+import { validateBody, validateQuery } from '../middleware/validate.js';
 import { validateRouteId } from '../middleware/validateRouteId.js';
 
 import {
@@ -18,7 +18,11 @@ import {
   publishSchedule
 } from '../controllers/schedule_controller.js';
 
-import { scheduleSchema, generateScheduleSchema } from '../validators/schedule_validator.js';
+import {
+  scheduleSchema,
+  generateScheduleSchema,
+  scheduleListQuerySchema
+} from '../validators/schedule_validator.js';
 
 const router = Router();
 
@@ -87,9 +91,12 @@ const publishScheduleSchema = z.strictObject({
 });
 
 
+// Issue #73: teachers and educators may list too; which lessons they
+// see, and the 403 for another teacher, are decided by kms_list_schedule.
 router.get(
   '/',
-  requireRole('admin', 'manager'),
+  requireRole('admin', 'manager', 'employee'),
+  validateQuery(scheduleListQuerySchema),
   getSchedules
 );
 

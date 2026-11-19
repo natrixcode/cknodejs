@@ -306,13 +306,14 @@ async function main() {
         'Parent cannot list schedules',
         'GET', '/schedule', 'parent', 403
       ],
+      // Issue #73: teachers list own lessons, educators own group.
       [
-        'Teacher cannot list schedules',
-        'GET', '/schedule', 'teacher', 403
+        'Teacher can list own schedules',
+        'GET', '/schedule', 'teacher', 200
       ],
       [
-        'Educator cannot list schedules',
-        'GET', '/schedule', 'educator', 403
+        'Educator can list own group schedules',
+        'GET', '/schedule', 'educator', 200
       ],
       [
         'Assistant cannot list schedules',
