@@ -1,5 +1,8 @@
 # SQL-міграції PostgreSQL
 
+Деактивація користувачів #76: `0032_deactivate_users.sql`,
+[контракт API та перевірки](../docs/user-deactivation.md). Номер погодити з TL.
+
 Автогенерація розкладу #51: міграція `0020_generate_group_day.sql`, правила,
 API та демонстрація описані в [окремій інструкції](../docs/schedule-generation.md).
 Перед застосуванням до основної БД потрібна міграція `0019_fixed_employee_salaries.sql`
