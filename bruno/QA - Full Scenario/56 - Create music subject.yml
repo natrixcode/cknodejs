@@ -1,0 +1,24 @@
+info:
+  name: 56 - Create music subject
+  type: http
+  seq: 56
+
+http:
+  method: POST
+  url: "{{baseUrl}}/subjects"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Music"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

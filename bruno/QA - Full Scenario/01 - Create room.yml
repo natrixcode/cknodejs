@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "name": "QA Room 01",
+        "name": "QA Room 02",
         "capacity": 20,
         "status": "available"
       }
