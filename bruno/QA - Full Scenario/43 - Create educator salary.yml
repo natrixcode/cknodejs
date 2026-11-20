@@ -1,0 +1,35 @@
+info:
+  name: 43 - Create educator salary
+  type: http
+  seq: 43
+
+http:
+  method: POST
+  url: "{{baseUrl}}/salaries"
+  body:
+    type: json
+    data: |-
+      {
+        "employee_id": 1,
+        "period_start": "2026-11-01"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('salaryId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,39 @@
+info:
+  name: 10 - Create child
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseUrl}}/children"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "QA",
+        "last_name": "Child",
+        "date_of_birth": "2023-06-15",
+        "group_id": 1,
+        "dietary_preferences": "Без горіхів",
+        "notes": "Тестова дитина для QA Issue #77"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('childId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "username": "demo_educator",
-        "password": "123456789011"
+        "password": "{{educator_password}}"
       }
 
 runtime:

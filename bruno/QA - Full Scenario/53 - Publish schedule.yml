@@ -1,0 +1,25 @@
+info:
+  name: 53 - Publish schedule
+  type: http
+  seq: 53
+
+http:
+  method: POST
+  url: "{{baseUrl}}/schedule/publish"
+  body:
+    type: json
+    data: |-
+      {
+        "schedule_ids": [1],
+        "day_start": "08:00"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

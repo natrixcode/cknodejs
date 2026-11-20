@@ -1,0 +1,25 @@
+info:
+  name: 06 - Assign assistant
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/groups/1/employees"
+  body:
+    type: json
+    data: |-
+      {
+        "employee_id": 2,
+        "role": "assistant"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

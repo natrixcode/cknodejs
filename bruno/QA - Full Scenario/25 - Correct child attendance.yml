@@ -1,0 +1,25 @@
+info:
+  name: 25 - Correct child attendance
+  type: http
+  seq: 25
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/attendance/{{attendanceId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "present": false,
+        "reason": "QA: виправлення помилкової відмітки"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

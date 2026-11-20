@@ -1,0 +1,40 @@
+info:
+  name: 30 - Create schedule lesson
+  type: http
+  seq: 30
+
+http:
+  method: POST
+  url: "{{baseUrl}}/schedule"
+  body:
+    type: json
+    data: |-
+      {
+        "group_id": 1,
+        "subject_id": 1,
+        "teacher_id": 7,
+        "room_id": 1,
+        "start_time": "2026-11-23T09:00:00+02:00",
+        "end_time": "2026-11-23T09:30:00+02:00",
+        "status": "draft"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('scheduleId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

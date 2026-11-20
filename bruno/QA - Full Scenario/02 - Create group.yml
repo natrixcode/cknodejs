@@ -1,0 +1,37 @@
+info:
+  name: 02 - Create group
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/groups"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Group 01",
+        "room_id": 1,
+        "age_years": 3,
+        "max_capacity": 20
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('groupId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

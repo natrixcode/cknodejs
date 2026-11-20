@@ -1,0 +1,37 @@
+info:
+  name: 12 - Create parent
+  type: http
+  seq: 12
+
+http:
+  method: POST
+  url: "{{baseUrl}}/parents"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "QA",
+        "last_name": "Parent",
+        "email": "qa.parent@example.test",
+        "phone": "380501234503"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('parentId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

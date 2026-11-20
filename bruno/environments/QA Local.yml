@@ -1,0 +1,35 @@
+name: QA Local
+variables:
+  - name: baseUrl
+    value: http://127.0.0.1:3001/api/v1
+    description: ""
+  - name: admin_username
+    value: qa_admin
+    description: ""
+  - name: groupId
+    value: "1"
+    description: ""
+  - name: childId
+    value: ""
+    description: ""
+  - name: employeeId
+    value: ""
+    description: ""
+  - name: parentId
+    value: "1"
+    description: ""
+  - name: parent_username
+    value: qa_parent
+    description: ""
+  - name: educator_username
+    value: qa_educator
+    description: ""
+  - name: invoiceId
+    value: "1"
+    description: ""
+  - secret: true
+    name: admin_password
+  - secret: true
+    name: parent_password
+  - secret: true
+    name: educator_password

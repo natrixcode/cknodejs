@@ -1,0 +1,24 @@
+info:
+  name: 59 - Assign teacher to chess
+  type: http
+  seq: 59
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/subjects/3/teachers"
+  body:
+    type: json
+    data: |-
+      {
+        "employee_ids": [7]
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

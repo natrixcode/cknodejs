@@ -8,7 +8,7 @@ http:
   url: "{{baseUrl}}/children"
   auth:
     type: bearer
-    token: 91eb661be690a9dad338aafefb3b264dd59f4597edcd791a745f16e948091987
+    token: "{{token}}"
 
 runtime:
   scripts:

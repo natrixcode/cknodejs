@@ -1,0 +1,22 @@
+info:
+  name: 31 - Schedule by teacher
+  type: http
+  seq: 31
+
+http:
+  method: GET
+  url: "{{baseUrl}}/schedule?teacher_id=7"
+  params:
+    - name: teacher_id
+      value: "7"
+      type: query
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

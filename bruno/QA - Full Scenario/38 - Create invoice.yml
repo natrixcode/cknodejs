@@ -1,0 +1,41 @@
+info:
+  name: 38 - Create invoice
+  type: http
+  seq: 38
+
+http:
+  method: POST
+  url: "{{baseUrl}}/invoices"
+  body:
+    type: json
+    data: |
+      {
+        "child_id": 2,
+        "period_start": "2026-11-01",
+        "period_end": "2026-11-30",
+        "parameters": {
+          "months": 1,
+          "meal_days": 20
+        },
+        "currency": "UAH"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 201 && body?.data?.id) {
+          bru.setVar('invoiceId', body.data.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,32 @@
+info:
+  name: 16 - Parent login
+  type: http
+  seq: 16
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "{{parent_username}}",
+        "password": "{{parent_password}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 200 && body?.data?.token) {
+          bru.setVar('parentToken', body.data.token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
