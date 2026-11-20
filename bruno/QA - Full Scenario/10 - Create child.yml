@@ -1,7 +1,7 @@
 info:
   name: 10 - Create child
   type: http
-  seq: 10
+  seq: 9
 
 http:
   method: POST

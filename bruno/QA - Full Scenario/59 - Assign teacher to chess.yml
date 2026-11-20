@@ -1,7 +1,7 @@
 info:
   name: 59 - Assign teacher to chess
   type: http
-  seq: 59
+  seq: 58
 
 http:
   method: PUT

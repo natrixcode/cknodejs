@@ -1,7 +1,7 @@
 info:
   name: 41 - Get child payments
   type: http
-  seq: 41
+  seq: 40
 
 http:
   method: GET

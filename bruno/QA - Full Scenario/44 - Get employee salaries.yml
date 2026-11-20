@@ -1,7 +1,7 @@
 info:
   name: 44 - Get employee salaries
   type: http
-  seq: 44
+  seq: 43
 
 http:
   method: GET

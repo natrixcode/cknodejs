@@ -5,10 +5,53 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/v1/schedule/overview?group_id=1&date=2026-11-19
+  url: "{{baseUrl}}/schedule/overview?group_id=1&date=2026-11-23"
   headers:
     - name: Authorization
       value: Bearer {{token}}
+  params:
+    - name: group_id
+      value: "1"
+      type: query
+    - name: date
+      value: 2026-11-23
+      type: query
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        if (res.getStatus() === 200 && body?.data?.token) {
+          bru.setVar("token", body.data.token);
+          console.log("Token saved successfully");
+        }
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Daily overview is sorted chronologically", function () {
+          expect(res.getStatus()).to.equal(200);
+
+          const events = body.data;
+
+          expect(events.length).to.be.greaterThan(0);
+
+          for (let i = 1; i < events.length; i++) {
+            const previous = new Date(events[i - 1].start_time).getTime();
+            const current = new Date(events[i].start_time).getTime();
+
+            expect(current >= previous).to.equal(true);
+          }
+        });
 
 settings:
   encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -1,0 +1,30 @@
+info:
+  name: 65 - Create second teacher user
+  type: http
+  seq: 64
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Second Teacher",
+        "email": "qa.second.teacher.user@example.test",
+        "username": "qa_second_teacher",
+        "password": "{{second_teacher_password}}",
+        "role": "employee",
+        "status": "active",
+        "employee_id": 8
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,7 +1,7 @@
 info:
   name: 52 - Create afternoon meal
   type: http
-  seq: 52
+  seq: 51
 
 http:
   method: POST

@@ -1,7 +1,7 @@
 info:
   name: 31 - Schedule by teacher
   type: http
-  seq: 31
+  seq: 30
 
 http:
   method: GET

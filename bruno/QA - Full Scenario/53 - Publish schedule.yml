@@ -1,7 +1,7 @@
 info:
   name: 53 - Publish schedule
   type: http
-  seq: 53
+  seq: 52
 
 http:
   method: POST

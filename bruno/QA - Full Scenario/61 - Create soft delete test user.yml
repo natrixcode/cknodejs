@@ -1,0 +1,29 @@
+info:
+  name: 61 - Create soft delete test user
+  type: http
+  seq: 60
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "QA Soft Delete Test",
+        "email": "qa.softdelete.test@example.test",
+        "username": "qa_softdelete_test",
+        "password": "{{softdelete_password}}",
+        "role": "manager",
+        "status": "active"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

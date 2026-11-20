@@ -1,7 +1,7 @@
 info:
   name: 24 - Mark child attendance
   type: http
-  seq: 24
+  seq: 23
 
 http:
   method: POST

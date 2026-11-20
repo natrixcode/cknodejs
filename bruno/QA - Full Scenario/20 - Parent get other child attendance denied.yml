@@ -1,14 +1,14 @@
 info:
   name: 20 - Parent get other child attendance denied
   type: http
-  seq: 20
+  seq: 19
 
 http:
   method: GET
-  url: "{{baseUrl}}/children/1/attendance"
+  url: "{{baseUrl}}/children/2/attendance"
   auth:
     type: bearer
-    token: "{{parentToken}}"
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

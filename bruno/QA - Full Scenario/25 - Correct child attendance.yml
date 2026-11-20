@@ -1,7 +1,7 @@
 info:
   name: 25 - Correct child attendance
   type: http
-  seq: 25
+  seq: 24
 
 http:
   method: PATCH

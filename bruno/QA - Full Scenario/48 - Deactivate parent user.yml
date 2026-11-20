@@ -1,7 +1,7 @@
 info:
   name: 48 - Deactivate parent user
   type: http
-  seq: 48
+  seq: 47
 
 http:
   method: DELETE

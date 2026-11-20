@@ -6,6 +6,9 @@ info:
 http:
   method: POST
   url: "{{baseUrl}}/parents/{{parentId}}/children"
+  headers:
+    - name: Content-Type
+      value: application/json
   body:
     type: json
     data: |-
@@ -13,7 +16,9 @@ http:
         "child_id": 2,
         "relationship_type": "parent"
       }
-  auth: inherit
+  auth:
+    type: bearer
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

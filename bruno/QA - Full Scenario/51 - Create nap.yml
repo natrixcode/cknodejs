@@ -1,7 +1,7 @@
 info:
   name: 51 - Create nap
   type: http
-  seq: 51
+  seq: 50
 
 http:
   method: POST

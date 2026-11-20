@@ -16,6 +16,8 @@ http:
         "username": "{{admin_username}}",
         "password": "{{admin_password}}"
       }
+  auth:
+    type: none
 
 runtime:
   scripts:

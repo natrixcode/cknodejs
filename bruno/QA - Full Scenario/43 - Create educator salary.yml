@@ -1,7 +1,7 @@
 info:
   name: 43 - Create educator salary
   type: http
-  seq: 43
+  seq: 42
 
 http:
   method: POST

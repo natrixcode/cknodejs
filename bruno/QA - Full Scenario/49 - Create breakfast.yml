@@ -1,7 +1,7 @@
 info:
   name: 49 - Create breakfast
   type: http
-  seq: 49
+  seq: 48
 
 http:
   method: POST

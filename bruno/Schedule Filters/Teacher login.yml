@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/v1/auth/login
+  url: "{{baseUrl}}/auth/login"
   headers:
     - name: Content-Type
       value: application/json
@@ -13,11 +13,9 @@ http:
     type: json
     data: |-
       {
-        "username": "demo_teacher",
-        "password": "{{demo_password}}"
+        "username": "{{educator_username}}",
+        "password": "{{educator_password}}"
       }
-  auth:
-    type: none
 
 runtime:
   scripts:

@@ -1,7 +1,7 @@
 info:
   name: 54 - Get published schedule
   type: http
-  seq: 54
+  seq: 53
 
 http:
   method: GET

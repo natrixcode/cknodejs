@@ -1,7 +1,7 @@
 info:
   name: 29 - Get subject teachers
   type: http
-  seq: 29
+  seq: 28
 
 http:
   method: GET
