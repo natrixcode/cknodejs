@@ -1,7 +1,7 @@
 info:
   name: 55 - Generate schedule
   type: http
-  seq: 55
+  seq: 54
 
 http:
   method: POST

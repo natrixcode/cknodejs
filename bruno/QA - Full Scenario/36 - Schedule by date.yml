@@ -1,7 +1,7 @@
 info:
   name: 36 - Schedule by date
   type: http
-  seq: 36
+  seq: 35
 
 http:
   method: GET

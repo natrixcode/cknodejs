@@ -1,7 +1,7 @@
 info:
   name: 26 - Create subject
   type: http
-  seq: 26
+  seq: 25
 
 http:
   method: POST

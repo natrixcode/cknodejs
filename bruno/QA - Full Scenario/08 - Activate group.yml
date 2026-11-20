@@ -1,7 +1,7 @@
 info:
   name: 08 - Activate group
   type: http
-  seq: 8
+  seq: 7
 
 http:
   method: PATCH

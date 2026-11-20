@@ -1,7 +1,7 @@
 info:
   name: 40 - Register payment
   type: http
-  seq: 40
+  seq: 39
 
 http:
   method: POST

@@ -1,7 +1,7 @@
 info:
   name: 58 - Assign teacher to music
   type: http
-  seq: 58
+  seq: 57
 
 http:
   method: PUT

@@ -1,0 +1,27 @@
+info:
+  name: 63 - Create parent for access test
+  type: http
+  seq: 62
+
+http:
+  method: POST
+  url: "{{baseUrl}}/parents"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "QA",
+        "last_name": "Access Test Parent",
+        "email": "qa.access.parent@example.test",
+        "phone": "+380671234589"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

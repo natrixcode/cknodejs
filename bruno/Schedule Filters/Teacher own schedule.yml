@@ -5,8 +5,14 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/v1/schedule
-  auth: inherit
+  url: "{{baseUrl}}/schedule?teacher_id=8"
+  params:
+    - name: teacher_id
+      value: "8"
+      type: query
+  auth:
+    type: bearer
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

@@ -1,7 +1,7 @@
 info:
   name: 28 - Assign teacher to subject
   type: http
-  seq: 28
+  seq: 27
 
 http:
   method: PUT

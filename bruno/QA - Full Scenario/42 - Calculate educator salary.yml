@@ -1,7 +1,7 @@
 info:
   name: 42 - Calculate educator salary
   type: http
-  seq: 42
+  seq: 41
 
 http:
   method: POST

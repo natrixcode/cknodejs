@@ -1,7 +1,7 @@
 info:
   name: 38 - Create invoice
   type: http
-  seq: 38
+  seq: 37
 
 http:
   method: POST

@@ -5,10 +5,14 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/v1/schedule?group_id=1&date=2026-11-19&status=published
-  headers:
-    - name: Authorization
-      value: Bearer {{token}}
+  url: "{{baseUrl}}/schedule?teacher_id=7&room_id=1"
+  auth:
+    type: bearer
+    token: "{{token}}"
 
 settings:
   encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

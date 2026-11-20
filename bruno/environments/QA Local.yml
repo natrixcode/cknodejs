@@ -29,7 +29,19 @@ variables:
     description: ""
   - secret: true
     name: admin_password
+    description: ""
   - secret: true
     name: parent_password
+    description: ""
   - secret: true
     name: educator_password
+    description: ""
+  - secret: true
+    name: softdelete_password
+    description: ""
+  - secret: true
+    name: parent_access_password
+    description: ""
+  - secret: true
+    name: second_teacher_password
+    description: ""

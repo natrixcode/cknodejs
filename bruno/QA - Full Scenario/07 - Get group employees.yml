@@ -6,7 +6,9 @@ info:
 http:
   method: GET
   url: "{{baseUrl}}/groups/1/employees"
-  auth: inherit
+  auth:
+    type: bearer
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

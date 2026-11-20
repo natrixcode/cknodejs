@@ -1,7 +1,7 @@
 info:
   name: 50 - Create lunch
   type: http
-  seq: 50
+  seq: 49
 
 http:
   method: POST

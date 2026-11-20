@@ -1,7 +1,7 @@
 info:
   name: 11 - Get child
   type: http
-  seq: 11
+  seq: 10
 
 http:
   method: GET
