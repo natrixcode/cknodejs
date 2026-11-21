@@ -93,7 +93,7 @@ router.get(
 
 router.get(
   '/:id/schedule',
-  requireRole('admin', 'manager'),
+  requireRole('admin', 'manager', 'parent'),
   getChildSchedule
 );
 

@@ -293,6 +293,35 @@ async function main() {
     const base =
       `http://127.0.0.1:${server.address().port}/api/v1`;
 
+    const parentHeaders = {
+      Authorization: `Bearer ${tokens.parent}`
+    };
+
+    const own = await fetch(`${base}/children/${childId}/schedule`, {
+      headers: parentHeaders
+    });
+
+    assert.equal(own.status, 200);
+
+    const { data } = await own.json();
+    assert.deepEqual(
+      data.map(row => String(row.id)),
+      [String(publishedId)]
+    );
+
+    const classmate = await insertOne(
+      `INSERT INTO children (first_name, last_name, date_of_birth, group_id)
+       VALUES ('Another', 'Child', CURRENT_DATE - INTERVAL '3 years', $1)
+       RETURNING id`,
+      [first.groupId]
+    );
+
+    const other = await fetch(`${base}/children/${classmate}/schedule`, {
+      headers: parentHeaders
+    });
+
+    assert.equal(other.status, 403);
+
     const cases = [
       [
         'Admin can list schedules',
