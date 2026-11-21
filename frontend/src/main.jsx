@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api } from './api.js';
+import { AttendanceActions, ScheduleActions } from './DayActions.jsx';
 import './styles.css';
 
 const SESSION_KEY = 'cknodejs.manager.session';
@@ -240,9 +241,10 @@ function attendanceLabel(record) {
   return 'Без відмітки';
 }
 
-function GroupDay({ group, token, onExpired, onBack }) {
+function GroupDay({ group, role, token, onExpired, onBack }) {
   const [date, setDate] = useState(todayInKyiv);
-  const future = date > todayInKyiv();
+  const today = todayInKyiv();
+  const future = date > today;
   const query = new URLSearchParams({ group_id: group.id, date });
 
   const roster = useList(
@@ -301,12 +303,23 @@ function GroupDay({ group, token, onExpired, onBack }) {
                         {formatTime(event.start_time)}–{formatTime(event.end_time)}
                       </strong>
                       {' · '}{eventName(event)}
-                      {event.status === 'draft' && ' · Чернетка'}
+                      {event.type === 'lesson' && (
+                        event.status === 'draft' ? ' · Чернетка' : ' · Опубліковано'
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
             </ListContent>
+            <ScheduleActions
+                key={group.id + ':' + date}
+                role={role}
+                group={group}
+                date={date}
+                state={schedule}
+                token={token}
+                onExpired={onExpired}
+            />
           </section>
 
           <section className="panel">
@@ -334,8 +347,17 @@ function GroupDay({ group, token, onExpired, onBack }) {
                     ))}
                   </ul>
                 )}
-              </ListContent>
+                </ListContent>
             )}
+            <AttendanceActions
+              key={group.id + ':' + date}
+              role={role}
+              date={date}
+              today={today}
+              state={attendance}
+              token={token}
+              onExpired={onExpired}
+            />
           </section>
         </div>
       ) : (
@@ -387,7 +409,7 @@ function TeacherHome({ token, onExpired }) {
             {new Date(lesson.start_time).toLocaleDateString('uk-UA', { timeZone: KYIV })}
             {' · '}{formatTime(lesson.start_time)}–{formatTime(lesson.end_time)}
             {' · Група №'}{lesson.group_id}{' · Кімната №'}{lesson.room_id}
-            {lesson.status === 'draft' && ' · Чернетка'}
+            {lesson.status === 'draft' ? ' · Чернетка' : ' · Опубліковано'}
           </li>
         )}</ul>}
       </ListContent>
@@ -412,14 +434,14 @@ function Cabinet({ token, onExpired }) {
   if (user.role === 'admin' || user.role === 'manager') {
     const title = user.role === 'admin' ? 'Кабінет адміністратора' : 'Кабінет менеджера';
     return selected
-      ? <GroupDay group={selected} onBack={() => setSelected(null)} {...access} />
+        ? <GroupDay group={selected} role={user.role} onBack={() => setSelected(null)} {...access} />
       : <Groups title={title} onSelect={setSelected} {...access} />;
   }
   if (user.role === 'parent') return <ParentHome parentId={user.parent_id} {...access} />;
   if (user.role === 'employee' && user.position === 'teacher') return <TeacherHome {...access} />;
   if (user.role === 'employee' && user.position === 'educator') {
     return user.group
-      ? <GroupDay group={user.group} {...access} />
+      ? <GroupDay group={user.group} role={user.position} {...access} />
       : <p>Вас ще не призначено до групи.</p>;
   }
   return <p>Для цього облікового запису немає доступного кабінету.</p>;
