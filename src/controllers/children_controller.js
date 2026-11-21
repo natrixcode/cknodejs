@@ -142,7 +142,7 @@ export async function getChildPayments(req, res, next) {
 
 export async function getChildSchedule(req, res, next) {
   try {
-    const result = await service.getChildSchedule(req.params.id);
+    const result = await service.getChildSchedule(req.params.id, req.user);
 
     if (result.noContent) {
       return res.sendStatus(result.status);

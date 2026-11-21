@@ -168,7 +168,27 @@ export async function getChildPayments(id) {
   );
 }
 
-export async function getChildSchedule(id) {
+export async function getChildSchedule(id, user) {
+  if (user.role === 'parent') {
+    const lessons = await rows(
+      `SELECT s.id, s.start_time, s.end_time, subject.name AS subject_name
+       FROM children c
+       LEFT JOIN schedule s
+         ON s.group_id = c.group_id AND s.status = 'published'
+       LEFT JOIN subjects subject ON subject.id = s.subject_id
+       WHERE c.id = $1 AND kms_can_view_child($2, c.id)
+       ORDER BY s.start_time, s.id`,
+      [id, user.id]
+    );
+
+    if (lessons.length === 0) {
+      return { status: 403, body: { message: 'Access denied' } };
+    }
+
+    // Для своєї дитини без занять LEFT JOIN повертає рядок з id = null.
+    return ok(lessons.filter(lesson => lesson.id !== null));
+  }
+
   return ok(
     await rows(
       `SELECT s.*

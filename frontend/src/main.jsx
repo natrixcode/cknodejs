@@ -381,19 +381,237 @@ function GroupDay({ group, role, token, onExpired, onBack }) {
   );
 }
 
+const invoiceLabels = {
+  draft: 'Чернетка',
+  issued: 'Виставлено',
+  paid: 'Сплачено',
+  cancelled: 'Скасовано'
+};
+
+const kyivDate = new Intl.DateTimeFormat('uk-UA', {
+  timeZone: KYIV
+});
+
+function calendarDate(value) {
+  return value.split('-').reverse().join('.');
+}
+
+function money(amount, currency) {
+  return new Intl.NumberFormat('uk-UA', {
+    style: 'currency',
+    currency
+  }).format(amount);
+}
+
 function ParentHome({ parentId, token, onExpired }) {
-  const children = useList(parentId ? `/parents/${parentId}/children` : null, token, onExpired);
-  if (!parentId) return <p>До облікового запису ще не прив’язано профіль батьків.</p>;
+  const [selected, setSelected] = useState(null);
+
+  const children = useList(
+    parentId ? `/parents/${parentId}/children` : null,
+    token,
+    onExpired
+  );
+
+  if (!parentId) {
+    return <p>До облікового запису ще не прив’язано профіль батьків.</p>;
+  }
+
+  if (selected) {
+    return (
+      <ParentChildCard
+        key={selected.id}
+        child={selected}
+        parentId={parentId}
+        token={token}
+        onExpired={onExpired}
+        onBack={() => setSelected(null)}
+      />
+    );
+  }
 
   return (
     <section className="panel">
       <h1>Мої діти</h1>
-      <ListContent state={children} empty="До вашого профілю ще не додано дітей.">
-        {items => <ul>{items.map(child =>
-          <li key={child.id}>{child.first_name} {child.last_name}</li>
-        )}</ul>}
+
+      <ListContent
+        state={children}
+        empty="До вашого профілю ще не додано дітей."
+      >
+        {items => (
+          <div className="group-grid">
+            {items.map(child => (
+              <button
+                className="group-card"
+                key={child.id}
+                onClick={() => setSelected(child)}
+              >
+                <strong>{child.first_name} {child.last_name}</strong>
+              </button>
+            ))}
+          </div>
+        )}
       </ListContent>
     </section>
+  );
+}
+
+function ParentChildCard({ child, parentId, token, onExpired, onBack }) {
+  const today = todayInKyiv();
+  const [from, setFrom] = useState(today.slice(0, 8) + '01');
+  const [to, setTo] = useState(today);
+  const invalid = Boolean(from && to && from > to);
+
+  const query = new URLSearchParams();
+  if (from) query.set('from', from);
+  if (to) query.set('to', to);
+
+  const childPath = `/children/${child.id}`;
+
+  const attendance = useList(
+    invalid ? null : `${childPath}/attendance?${query}`,
+    token,
+    onExpired
+  );
+
+  const schedule = useList(`${childPath}/schedule`, token, onExpired);
+  const invoices = useList(`/parents/${parentId}/invoices`, token, onExpired);
+  const payments = useList(`/parents/${parentId}/payments`, token, onExpired);
+
+  const childInvoices = {
+    ...invoices,
+    items: invoices.items?.filter(
+      item => String(item.child_id) === String(child.id)
+    )
+  };
+
+  return (
+    <>
+      <button className="back" onClick={onBack}>До списку дітей</button>
+      <h1>{child.first_name} {child.last_name}</h1>
+
+      <div className="panels">
+        <section className="panel">
+          <h2>Відвідуваність</h2>
+
+          <label>
+            Період від
+            <input
+              type="date"
+              value={from}
+              onChange={event => setFrom(event.target.value)}
+            />
+          </label>
+
+          <label>
+            Період до
+            <input
+              type="date"
+              value={to}
+              onChange={event => setTo(event.target.value)}
+            />
+          </label>
+
+          {invalid ? (
+            <p role="alert">
+              Початок періоду має бути до кінцевої дати або збігатися з нею.
+            </p>
+          ) : (
+            <ListContent
+              state={attendance}
+              empty="За цей період відміток немає."
+            >
+              {items => (
+                <ul>
+                  {items.map(row => (
+                    <li key={row.attendance_date}>
+                      <strong>{calendarDate(row.attendance_date)}</strong>
+                      {' · '}{row.present ? 'Присутність' : 'Відсутність'}
+                      {row.reason && <small>{row.reason}</small>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </ListContent>
+          )}
+        </section>
+
+        <section className="panel">
+          <h2>Опублікований розклад</h2>
+          <p className="muted">Час Києва</p>
+
+          <ListContent
+            state={schedule}
+            empty="Опублікованих занять поки немає."
+          >
+            {items => (
+              <ul>
+                {items.map(lesson => (
+                  <li key={lesson.id}>
+                    <strong>{lesson.subject_name || 'Заняття'}</strong>
+                    <small>
+                      {kyivDate.format(new Date(lesson.start_time))}
+                      {' · '}
+                      {formatTime(lesson.start_time)}–{formatTime(lesson.end_time)}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListContent>
+        </section>
+      </div>
+
+      <section className="panel roster">
+        <h2>Рахунки та платежі</h2>
+
+        <ListContent
+          state={childInvoices}
+          empty="Для цієї дитини рахунків поки немає."
+        >
+          {items => (
+            <ul>
+              {items.map(invoice => {
+                const invoicePayments = {
+                  ...payments,
+                  items: payments.items?.filter(
+                    payment => String(payment.invoice_id) === String(invoice.id)
+                  )
+                };
+
+                return (
+                  <li key={invoice.id}>
+                    <strong>
+                      Рахунок №{invoice.id} · {money(invoice.total_amount, invoice.currency)}
+                    </strong>
+
+                    <small>
+                      {calendarDate(invoice.period_start)} – {calendarDate(invoice.period_end)}
+                      {' · '}{invoiceLabels[invoice.status] || invoice.status}
+                    </small>
+
+                    <ListContent
+                      state={invoicePayments}
+                      empty="Платежів за цим рахунком поки немає."
+                    >
+                      {entries => (
+                        <ul aria-label={`Платежі за рахунком №${invoice.id}`}>
+                          {entries.map(payment => (
+                            <li key={payment.id}>
+                              Платіж · {kyivDate.format(new Date(payment.payment_date))}
+                              {' · '}{money(payment.amount, payment.currency)}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </ListContent>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ListContent>
+      </section>
+    </>
   );
 }
 
