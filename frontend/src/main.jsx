@@ -634,10 +634,229 @@ function TeacherHome({ token, onExpired }) {
     </section>
   );
 }
+function Finance({ role, token, onExpired }) {
+  const children = useList('/children?status=all', token, onExpired);
+  const invoices = useList('/invoices', token, onExpired);
+
+  const [childId, setChildId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+
+  const admin = role === 'admin';
+  const child = children.items?.find(c => String(c.id) === childId);
+
+  const list = {
+    ...invoices,
+    items: invoices.items?.filter(i => String(i.child_id) === childId)
+  };
+
+  async function save(event, paymentInvoice) {
+    event.preventDefault();
+    if (busy) return;
+
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+
+    setBusy(true);
+    setNotice('');
+
+    try {
+      if (paymentInvoice) {
+        await api('/payments', {
+          token,
+          method: 'POST',
+          body: {
+            invoice_id: Number(paymentInvoice.id),
+            amount: Number(fields.get('amount')),
+            currency: paymentInvoice.currency,
+            method: fields.get('method'),
+            transaction_id: fields.get('reference').trim(),
+            payment_date: new Date().toISOString()
+          }
+        });
+      } else {
+        const start = fields.get('month') + '-01';
+        const months = Number(fields.get('months'));
+
+        // Нульовий день наступного періоду — останній день обраного.
+        const end = new Date(start + 'T00:00:00Z');
+        end.setUTCMonth(end.getUTCMonth() + months, 0);
+
+        await api('/invoices', {
+          token,
+          method: 'POST',
+          body: {
+            child_id: Number(childId),
+            period_start: start,
+            period_end: end.toISOString().slice(0, 10),
+            currency: 'UAH',
+            parameters: {
+              months,
+              meal_days: Number(fields.get('days'))
+            }
+          }
+        });
+      }
+
+      form.reset();
+      setNotice(
+        paymentInvoice ? 'Платіж зареєстровано.' : 'Рахунок виставлено.'
+      );
+      invoices.retry();
+    } catch (error) {
+      if (error.status === 401) {
+        onExpired(error.message);
+      } else {
+        setNotice(error.message);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="panel roster day-actions">
+      <h1>Фінанси</h1>
+
+      <ListContent state={children} empty="У списку поки немає дітей.">
+        {items => (
+          <label>
+            Дитина
+            <select
+              value={childId}
+              disabled={busy}
+              onChange={event => {
+                setChildId(event.target.value);
+                setNotice('');
+              }}
+            >
+              <option value="">Обери дитину</option>
+              {items.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name} · №{c.id}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </ListContent>
+
+      {child && (
+        <div key={childId}>
+          {admin && child.status !== 'archived' && (
+            <details>
+              <summary>Виставити рахунок</summary>
+
+              <form onSubmit={event => save(event, null)}>
+                <label>
+                  Початковий місяць
+                  <input name="month" type="month" required />
+                </label>
+
+                <label>
+                  Період
+                  <select name="months">
+                    <option value="1">1 місяць</option>
+                    <option value="12">12 місяців</option>
+                  </select>
+                </label>
+
+                <label>
+                  Кількість днів харчування
+                  <input
+                    name="days"
+                    type="number"
+                    min="0"
+                    max="366"
+                    step="1"
+                    required
+                  />
+                </label>
+
+                <button disabled={busy}>Створити рахунок</button>
+              </form>
+            </details>
+          )}
+
+          <h2>Рахунки</h2>
+
+          <ListContent state={list} empty="Для цієї дитини рахунків поки немає.">
+            {items => (
+              <ul>
+                {items.map(i => (
+                  <li key={i.id}>
+                    <strong>
+                      Рахунок №{i.id} · {invoiceLabels[i.status] || i.status}
+                    </strong>
+
+                    <small>
+                      {calendarDate(i.period_start)} – {calendarDate(i.period_end)}
+                    </small>
+
+                    <p>
+                      Нараховано {money(i.total_amount, i.currency)} ·
+                      Сплачено {money(i.paid_amount, i.currency)} ·
+                      Залишок {money(i.balance_due, i.currency)}
+                    </p>
+
+                    {admin && i.status === 'issued' && Number(i.balance_due) > 0 && (
+                      <details>
+                        <summary>Зареєструвати оплату</summary>
+
+                        <form onSubmit={event => save(event, i)}>
+                          <label>
+                            Сума ({i.currency})
+                            <input
+                              name="amount"
+                              type="number"
+                              min="0.01"
+                              max={i.balance_due}
+                              step="0.01"
+                              required
+                            />
+                          </label>
+
+                          <label>
+                            Спосіб оплати
+                            <select name="method">
+                              <option value="cash">Готівка</option>
+                              <option value="card">Картка</option>
+                              <option value="bank_transfer">Банківський переказ</option>
+                              <option value="online">Онлайн</option>
+                            </select>
+                          </label>
+
+                          <label>
+                            Номер квитанції або операції
+                            <input
+                              name="reference"
+                              required
+                              maxLength={200}
+                              pattern=".*\S.*"
+                            />
+                          </label>
+
+                          <button disabled={busy}>Зареєструвати платіж</button>
+                        </form>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListContent>
+        </div>
+      )}
+
+      <p role="status">{notice}</p>
+    </section>
+  );
+}
 
 function Cabinet({ token, onExpired }) {
   const profile = useResource('/auth/me', token, onExpired);
   const [selected, setSelected] = useState(null);
+  const [finance, setFinance] = useState(false);
   const access = { token, onExpired };
 
   if (profile.error) return (
@@ -650,10 +869,42 @@ function Cabinet({ token, onExpired }) {
   if (!user) return <p role="status">Завантаження профілю…</p>;
 
   if (user.role === 'admin' || user.role === 'manager') {
-    const title = user.role === 'admin' ? 'Кабінет адміністратора' : 'Кабінет менеджера';
-    return selected
-        ? <GroupDay group={selected} role={user.role} onBack={() => setSelected(null)} {...access} />
-      : <Groups title={title} onSelect={setSelected} {...access} />;
+    const title = user.role === 'admin'
+      ? 'Кабінет адміністратора'
+      : 'Кабінет менеджера';
+
+    return (
+      <>
+        <nav aria-label="Розділи кабінету" className="cabinet-nav">
+          <button
+            aria-pressed={!finance}
+            onClick={() => setFinance(false)}
+          >
+            Групи
+          </button>
+
+          <button
+            aria-pressed={finance}
+            onClick={() => setFinance(true)}
+          >
+            Фінанси
+          </button>
+        </nav>
+
+        {finance ? (
+          <Finance role={user.role} {...access} />
+        ) : selected ? (
+          <GroupDay
+            group={selected}
+            role={user.role}
+            onBack={() => setSelected(null)}
+            {...access}
+          />
+        ) : (
+          <Groups title={title} onSelect={setSelected} {...access} />
+        )}
+      </>
+    );
   }
   if (user.role === 'parent') return <ParentHome parentId={user.parent_id} {...access} />;
   if (user.role === 'employee' && user.position === 'teacher') return <TeacherHome {...access} />;
