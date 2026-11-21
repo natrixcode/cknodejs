@@ -31,6 +31,7 @@ export async function requireAuth(req, res, next) {
         u.role,
         u.status,
         u.is_active,
+        u.parent_id,
         u.employee_id,
         e.position AS employee_position,
         e.status AS employee_status

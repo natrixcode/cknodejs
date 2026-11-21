@@ -11,6 +11,24 @@ import {
   revokeSession
 } from '../utils/sessions.js';
 
+export async function getProfile(user) {
+  const group = user.role === 'employee' && user.employee_position === 'educator'
+    ? await one(
+        'SELECT id, name FROM groups WHERE kms_is_group_educator($1, id)',
+        [user.id]
+      )
+    : null;
+
+  return ok({
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    position: user.role === 'employee' ? user.employee_position : null,
+    parent_id: user.role === 'parent' ? user.parent_id : null,
+    group
+  });
+}
+
 export async function login(data) {
   const field = Object.hasOwn(data, 'email')
     ? 'email'

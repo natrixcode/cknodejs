@@ -1,5 +1,11 @@
 import * as service from '../services/auth_service.js';
 
+export async function me(req, res) {
+  const result = await service.getProfile(req.user);
+  res.set('Cache-Control', 'private, no-store');
+  res.status(result.status).json(result.body);
+}
+
 export async function login(req, res, next) {
   try {
     const result = await service.login(req.body);
