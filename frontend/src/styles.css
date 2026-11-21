@@ -231,3 +231,20 @@ small { display: block; margin-top: 4px; }
 .day-actions [role="status"]:empty {
   display: none;
 }
+
+.cabinet-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.cabinet-nav [aria-pressed="true"] {
+  background: #193f40;
+  color: white;
+}
+
+:focus-visible {
+  outline: 3px solid #287568;
+  outline-offset: 3px;
+}
