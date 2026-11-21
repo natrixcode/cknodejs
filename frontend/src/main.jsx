@@ -31,17 +31,12 @@ function formatTime(timestamp) {
   return timeFormatter.format(new Date(timestamp));
 }
 
-function canOpenCabinet(session) {
-  return ['manager', 'admin'].includes(session?.user?.role);
-}
-
 function restoreSession() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY));
 
     if (
-      canOpenCabinet(saved) &&
-      saved.token &&
+      saved?.token &&
       Date.parse(saved.expires_at) > Date.now()
     ) {
       return saved;
@@ -76,16 +71,6 @@ function Login({ onLogin, notice }) {
         }
       });
 
-      if (!canOpenCabinet(session)) {
-        await api('/auth/logout', {
-          method: 'POST',
-          token: session.token
-        }).catch(() => {});
-
-        setError('Для цього кабінету потрібен акаунт менеджера або адміністратора.');
-        return;
-      }
-
       onLogin(session);
     } catch (error) {
       setError(error.message);
@@ -100,9 +85,7 @@ function Login({ onLogin, notice }) {
         <span className="brand">СК Садок</span>
 
         <div>
-          <p className="eyebrow">Кабінет менеджера</p>
-          <h1>День групи</h1>
-          <p>Розклад, відвідуваність і склад групи.</p>
+          <h1>Кабінет садочка</h1>
         </div>
       </section>
 
@@ -146,7 +129,7 @@ function Login({ onLogin, notice }) {
 
 // Кожна секція завантажується окремо. При зміні дати попередній
 // запит скасовується, щоб його відповідь не потрапила в новий табель.
-function useList(path, token, onExpired) {
+function useResource(path, token, onExpired, expectList = false) {
   const [result, setResult] = useState(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -157,17 +140,17 @@ function useList(path, token, onExpired) {
 
     async function load() {
       try {
-        const items = await api(path, {
+        const data = await api(path, {
           token,
           signal: controller.signal
         });
 
-        if (!Array.isArray(items)) {
+        if (expectList && !Array.isArray(data)) {
           throw new Error('API повернув неочікуваний формат списку.');
         }
 
         if (!controller.signal.aborted) {
-          setResult({ path, attempt, items });
+          setResult({ path, attempt, data });
         }
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -182,7 +165,7 @@ function useList(path, token, onExpired) {
 
     load();
     return () => controller.abort();
-  }, [path, token, attempt, onExpired]);
+  }, [path, token, attempt, onExpired, expectList]);
 
   const current =
     result?.path === path && result?.attempt === attempt ? result : null;
@@ -191,6 +174,11 @@ function useList(path, token, onExpired) {
     ...current,
     retry: () => setAttempt((previous) => previous + 1)
   };
+}
+
+function useList(path, token, onExpired) {
+  const { data, ...state } = useResource(path, token, onExpired, true);
+  return { ...state, items: data };
 }
 
 function ListContent({ state, empty, children }) {
@@ -209,12 +197,12 @@ function ListContent({ state, empty, children }) {
   return children(state.items);
 }
 
-function Groups({ token, onExpired, onSelect }) {
+function Groups({ token, onExpired, onSelect, title }) {
   const groups = useList('/groups', token, onExpired);
 
   return (
     <>
-      <p className="eyebrow">Кабінет менеджера</p>
+      <p className="eyebrow">{title}</p>
       <h1>Групи садочка</h1>
       <p className="muted">Вибери групу, щоб переглянути її день.</p>
 
@@ -277,11 +265,11 @@ function GroupDay({ group, token, onExpired, onBack }) {
 
   return (
     <>
-      <button className="back" onClick={onBack}>Усі групи</button>
+      {onBack && <button className="back" onClick={onBack}>Усі групи</button>}
 
       <div className="day-heading">
         <div>
-          <p className="eyebrow">День групи</p>
+          <p className="eyebrow">{onBack ? 'День групи' : 'Моя група'}</p>
           <h1>{group.name}</h1>
         </div>
 
@@ -371,14 +359,78 @@ function GroupDay({ group, token, onExpired, onBack }) {
   );
 }
 
+function ParentHome({ parentId, token, onExpired }) {
+  const children = useList(parentId ? `/parents/${parentId}/children` : null, token, onExpired);
+  if (!parentId) return <p>До облікового запису ще не прив’язано профіль батьків.</p>;
+
+  return (
+    <section className="panel">
+      <h1>Мої діти</h1>
+      <ListContent state={children} empty="До вашого профілю ще не додано дітей.">
+        {items => <ul>{items.map(child =>
+          <li key={child.id}>{child.first_name} {child.last_name}</li>
+        )}</ul>}
+      </ListContent>
+    </section>
+  );
+}
+
+function TeacherHome({ token, onExpired }) {
+  const lessons = useList('/schedule', token, onExpired);
+  return (
+    <section className="panel">
+      <h1>Мій розклад</h1>
+      <p>Час Києва</p>
+      <ListContent state={lessons} empty="У вашому розкладі поки немає занять.">
+        {items => <ul>{items.map(lesson =>
+          <li key={lesson.id}>
+            {new Date(lesson.start_time).toLocaleDateString('uk-UA', { timeZone: KYIV })}
+            {' · '}{formatTime(lesson.start_time)}–{formatTime(lesson.end_time)}
+            {' · Група №'}{lesson.group_id}{' · Кімната №'}{lesson.room_id}
+            {lesson.status === 'draft' && ' · Чернетка'}
+          </li>
+        )}</ul>}
+      </ListContent>
+    </section>
+  );
+}
+
+function Cabinet({ token, onExpired }) {
+  const profile = useResource('/auth/me', token, onExpired);
+  const [selected, setSelected] = useState(null);
+  const access = { token, onExpired };
+
+  if (profile.error) return (
+    <div role="alert">
+      <p className="alert">{profile.error}</p>
+      <button onClick={profile.retry}>Спробувати ще раз</button>
+    </div>
+  );
+  const user = profile.data;
+  if (!user) return <p role="status">Завантаження профілю…</p>;
+
+  if (user.role === 'admin' || user.role === 'manager') {
+    const title = user.role === 'admin' ? 'Кабінет адміністратора' : 'Кабінет менеджера';
+    return selected
+      ? <GroupDay group={selected} onBack={() => setSelected(null)} {...access} />
+      : <Groups title={title} onSelect={setSelected} {...access} />;
+  }
+  if (user.role === 'parent') return <ParentHome parentId={user.parent_id} {...access} />;
+  if (user.role === 'employee' && user.position === 'teacher') return <TeacherHome {...access} />;
+  if (user.role === 'employee' && user.position === 'educator') {
+    return user.group
+      ? <GroupDay group={user.group} {...access} />
+      : <p>Вас ще не призначено до групи.</p>;
+  }
+  return <p>Для цього облікового запису немає доступного кабінету.</p>;
+}
+
 function App() {
   const [session, setSession] = useState(restoreSession);
-  const [group, setGroup] = useState(null);
   const [notice, setNotice] = useState('');
 
   const endSession = useCallback((message = '') => {
     setSession(null);
-    setGroup(null);
     setNotice(message);
   }, []);
 
@@ -433,20 +485,7 @@ function App() {
       </header>
 
       <main className="workspace">
-        {group ? (
-          <GroupDay
-            group={group}
-            token={session.token}
-            onExpired={endSession}
-            onBack={() => setGroup(null)}
-          />
-        ) : (
-          <Groups
-            token={session.token}
-            onExpired={endSession}
-            onSelect={setGroup}
-          />
-        )}
+        <Cabinet key={session.token} token={session.token} onExpired={endSession} />
       </main>
     </>
   );
