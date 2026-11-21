@@ -205,3 +205,29 @@ small { display: block; margin-top: 4px; }
   .day-heading { align-items: start; flex-direction: column; }
   .topbar > div > span { display: none; }
 }
+.day-actions {
+  margin-top: 1rem;
+}
+
+.day-actions details,
+.day-actions form {
+  margin-bottom: 1rem;
+}
+
+.day-actions select {
+  font: inherit;
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #a7bbb4;
+  border-radius: 9px;
+  background: white;
+  color: #193638;
+}
+
+.day-actions summary {
+  cursor: pointer;
+}
+
+.day-actions [role="status"]:empty {
+  display: none;
+}

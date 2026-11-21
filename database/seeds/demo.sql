@@ -177,3 +177,20 @@ WHERE c.last_name = 'Demo'
           && daterange(DATE '2026-11-01', DATE '2026-11-30', '[]')
       AND i.status <> 'cancelled'
   );
+
+BEGIN;
+
+INSERT INTO subjects (name, description)
+VALUES ('Demo Music', 'Demo music lesson')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO employee_subjects (employee_id, subject_id)
+SELECT e.id, s.id
+FROM employees e
+CROSS JOIN subjects s
+WHERE e.email = 'demo.teacher@example.test'
+  AND e.position = 'teacher'
+  AND s.name IN ('Demo Mathematics', 'Demo Art', 'Demo Music')
+ON CONFLICT (employee_id, subject_id) DO NOTHING;
+
+COMMIT;
