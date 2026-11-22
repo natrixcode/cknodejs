@@ -65,6 +65,8 @@ export async function api(path, options = {}) {
 
     const error = new Error(message);
     error.status = response.status;
+    // Сирий код з бекенду, щоб сторінка могла дати точніше пояснення.
+    error.code = result?.message;
     throw error;
   }
 

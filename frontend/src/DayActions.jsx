@@ -144,7 +144,7 @@ function offsetAt(instant) {
   return part.value.replace('GMT', '') || '+00:00';
 }
 
-function kyivStart(day, clock) {
+export function kyivStart(day, clock) {
   // У день переведення годинника ранковий і денний зсуви можуть відрізнятися.
   for (const hour of ['12:00', '00:00']) {
     const offset = offsetAt(new Date(day + 'T' + hour + ':00Z'));

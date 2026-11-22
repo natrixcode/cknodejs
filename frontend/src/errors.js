@@ -90,6 +90,59 @@ const messages = {
     'Викладач у цей час уже веде інше заняття.',
   KMS_SCHEDULE_GROUP_CONFLICT:
     'У групи в цей час уже є заняття.',
+  KMS_SCHEDULE_ROOM_UNAVAILABLE:
+    'Кімната недоступна для занять (ремонт або неактивна).',
+  KMS_TEACHER_SUBJECT_MISMATCH:
+    'Цей викладач не веде обраний предмет. Призначте предмет у розділі «Персонал».',
+  KMS_INVALID_TEACHER:
+    'Обраний працівник не є активним викладачем.',
+  KMS_SUBJECT_REQUIRED:
+    'Оберіть предмет заняття.',
+  KMS_LESSON_DAILY_BLOCK_CONFLICT:
+    'Заняття накладається на харчування або сон.',
+  KMS_LESSON_OUTSIDE_WORKDAY:
+    'Заняття має бути в межах робочого дня групи.',
+  KMS_SCHEDULE_INVALID_INTERVAL:
+    'Час завершення має бути пізніше за початок.',
+  KMS_BLOCK_LESSON_CONFLICT:
+    'Блок накладається на заняття.',
+  KMS_GENERATION_NO_FREE_WINDOW:
+    'Для генерації немає вільного часу в дні групи.',
+  KMS_GENERATION_ROOM_CONFLICT:
+    'Кімната групи зайнята в потрібний час.',
+  KMS_REPUBLISH_DAY_REQUIRED:
+    'Публікуйте всі чернетки дня разом.',
+
+  // Користувачі
+  KMS_ADMIN_IMMUTABLE:
+    'Обліковий запис адміністратора не можна змінити чи вимкнути.',
+  KMS_INVALID_USER_ROLE:
+    'Роль не відповідає прив’язці: батькам потрібен профіль батьків, працівнику — картка працівника.',
+  KMS_USER_DELETE_FORBIDDEN:
+    'Обліковий запис не видаляють — його можна лише деактивувати.',
+
+  // Персонал
+  KMS_EMPLOYEE_NOT_FOUND:
+    'Такого працівника не знайдено.',
+  KMS_EMPLOYEE_NOT_ACTIVE:
+    'Працівник неактивний.',
+  KMS_EMPLOYEE_ASSIGNED_TO_MULTIPLE_GROUPS:
+    'Працівник уже працює в іншій групі.',
+  KMS_EMPLOYEE_HAS_INCOMPATIBLE_ASSIGNMENT:
+    'Працівник має несумісне призначення.',
+  KMS_GROUP_STAFF_NOT_FOUND:
+    'Цей працівник не призначений до групи.',
+  KMS_DEACTIVATE_GROUP_BEFORE_STAFF_CHANGE:
+    'Щоб змінити персонал, спершу деактивуйте групу.',
+  KMS_INVALID_STAFF_ROLE:
+    'Роль у групі може бути лише «вихователь» або «помічник».',
+  KMS_PREFLIGHT_GROUP_ROOM_INVALID:
+    'Кімната групи недоступна або замала.',
+  KMS_PREFLIGHT_TOO_MANY_ROOMS:
+    'Перевищено кількість кімнат садочка.',
+  KMS_PREFLIGHT_GROUP_AGE_INVALID:
+    'У групі є діти іншого віку.',
+
   KMS_PUBLISHED_SCHEDULE_IMMUTABLE:
     'Опублікований розклад змінювати не можна.'
 };

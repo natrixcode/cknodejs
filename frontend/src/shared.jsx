@@ -68,7 +68,7 @@ export function useResource(path, token, onExpired, expectList = false) {
         if (error.status === 401) {
           onExpired(error.message);
         } else {
-          setResult({ path, attempt, error: error.message });
+          setResult({ path, attempt, error: error.message, status: error.status });
         }
       }
     }
@@ -113,7 +113,8 @@ export function useMutation(onExpired) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  async function run(task, success, after) {
+  // explain(error) може повернути точніше пояснення для цієї дії.
+  async function run(task, success, after, explain) {
     if (busy) return false;
 
     setBusy(true);
@@ -128,7 +129,7 @@ export function useMutation(onExpired) {
       if (error.status === 401) {
         onExpired(error.message);
       } else {
-        setNotice({ type: 'error', text: error.message });
+        setNotice({ type: 'error', text: explain?.(error) || error.message });
       }
       return false;
     } finally {

@@ -5,6 +5,10 @@ import { AttendanceActions, ScheduleActions } from './DayActions.jsx';
 import { ListContent, todayInKyiv, useList, useResource } from './shared.jsx';
 import { ChildrenPage } from './admin/ChildrenPage.jsx';
 import { ParentsPage } from './admin/ParentsPage.jsx';
+import { GroupsPage } from './admin/GroupsPage.jsx';
+import { StaffPage } from './admin/StaffPage.jsx';
+import { UsersPage } from './admin/UsersPage.jsx';
+import { LessonEditor } from './admin/LessonEditor.jsx';
 import './styles.css';
 
 const SESSION_KEY = 'cknodejs.manager.session';
@@ -238,6 +242,15 @@ function GroupDay({ group, role, token, onExpired, onBack }) {
                 state={schedule}
                 token={token}
                 onExpired={onExpired}
+            />
+            <LessonEditor
+              key={'lessons:' + group.id + ':' + date}
+              role={role}
+              group={group}
+              date={date}
+              state={schedule}
+              token={token}
+              onExpired={onExpired}
             />
           </section>
 
@@ -772,10 +785,14 @@ function Finance({ role, token, onExpired }) {
   );
 }
 
+// Розділи кабінету; adminOnly — лише для адміністратора.
 const sections = [
-  ['groups', 'Групи'],
+  ['groups', 'День групи'],
   ['children', 'Діти'],
   ['parents', 'Батьки'],
+  ['structure', 'Групи й кімнати'],
+  ['staff', 'Персонал'],
+  ['users', 'Користувачі', true],
   ['finance', 'Фінанси']
 ];
 
@@ -784,6 +801,14 @@ function Cabinet({ token, onExpired }) {
   const [selected, setSelected] = useState(null);
   const [section, setSection] = useState('groups');
   const access = { token, onExpired };
+
+  // Помічнику за матрицею доступу кабінет закритий: /auth/me дає 403.
+  if (profile.status === 403) return (
+    <section className="panel">
+      <h1>Доступ обмежено</h1>
+      <p>Для цього облікового запису (наприклад, помічника) дані дітей і груп закриті. Розклад і табель веде вихователь групи.</p>
+    </section>
+  );
 
   if (profile.error) return (
     <div role="alert">
@@ -802,7 +827,7 @@ function Cabinet({ token, onExpired }) {
     return (
       <>
         <nav aria-label="Розділи кабінету" className="cabinet-nav">
-          {sections.map(([id, label]) => (
+          {sections.filter(([, , adminOnly]) => !adminOnly || user.role === 'admin').map(([id, label]) => (
             <button
               key={id}
               aria-pressed={section === id}
@@ -817,6 +842,12 @@ function Cabinet({ token, onExpired }) {
           <ChildrenPage role={user.role} {...access} />
         ) : section === 'parents' ? (
           <ParentsPage {...access} />
+        ) : section === 'structure' ? (
+          <GroupsPage role={user.role} {...access} />
+        ) : section === 'staff' ? (
+          <StaffPage role={user.role} {...access} />
+        ) : section === 'users' && user.role === 'admin' ? (
+          <UsersPage {...access} />
         ) : section === 'finance' ? (
           <Finance role={user.role} {...access} />
         ) : selected ? (
