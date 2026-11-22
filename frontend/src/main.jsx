@@ -426,6 +426,7 @@ function Icon({ name }) {
       </>
     ),
     home: <path d="M3 9.5L10 3.5l7 6M5 8v8.5h10V8M8.5 16.5v-4.5h3v4.5" />,
+    chart: <path d="M3.5 16.5h13M5.5 16.5V11M10 16.5V6M14.5 16.5V9" />,
     badge: (
       <>
         <rect x="3" y="5" width="14" height="11" rx="2.5" />
@@ -1042,6 +1043,7 @@ const sectionIcons = {
   structure: 'home',
   staff: 'badge',
   users: 'key',
+  office: 'chart',
   finance: 'wallet'
 };
 
