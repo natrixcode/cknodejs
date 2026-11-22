@@ -9,6 +9,7 @@ import { GroupsPage } from './admin/GroupsPage.jsx';
 import { StaffPage } from './admin/StaffPage.jsx';
 import { UsersPage } from './admin/UsersPage.jsx';
 import { LessonEditor } from './admin/LessonEditor.jsx';
+import OfficePage from './admin/OfficePage.jsx';
 import './styles.css';
 
 const SESSION_KEY = 'cknodejs.manager.session';
@@ -793,6 +794,7 @@ const sections = [
   ['structure', 'Групи й кімнати'],
   ['staff', 'Персонал'],
   ['users', 'Користувачі', true],
+  ['office', 'Управління', true],
   ['finance', 'Фінанси']
 ];
 
@@ -838,7 +840,9 @@ function Cabinet({ token, onExpired }) {
           ))}
         </nav>
 
-        {section === 'children' ? (
+        {section === 'office' && user.role === 'admin' ? (
+          <OfficePage {...access} />
+        ) : section === 'children' ? (
           <ChildrenPage role={user.role} {...access} />
         ) : section === 'parents' ? (
           <ParentsPage {...access} />
