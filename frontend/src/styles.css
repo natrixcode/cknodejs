@@ -1000,6 +1000,118 @@ input.field-lock {
 .login-layout,
 .login-form { background: transparent; }
 
+/* ——— Форми-операції та результати (вкладка «Управління» тощо) ——— */
+.panel fieldset:not(.checks) {
+  margin: 8px 0 0;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fbf6ee;
+}
+
+.panel fieldset:not(.checks) > legend {
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--green);
+  color: white;
+  font-weight: 650;
+  font-size: 0.92rem;
+}
+
+/* Головна кнопка в кінці форми-операції */
+.panel fieldset:not(.checks) > button:last-child {
+  margin-top: 6px;
+  padding: 11px 22px;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  font-weight: 650;
+}
+
+.panel fieldset:not(.checks) > button:last-child:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.panel p[role="alert"]:not(.alert) {
+  padding: 12px;
+  border-radius: 10px;
+  background: #fbe4da;
+  color: #852f20;
+}
+
+/* Результат запиту: картки з парами «назва — значення» */
+.panel section[aria-live] {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--line-strong);
+}
+
+.panel section[aria-live] ol {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: result;
+}
+
+.panel section[aria-live] ol > li {
+  position: relative;
+  padding: 14px 16px 14px 52px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  counter-increment: result;
+}
+
+.panel section[aria-live] ol > li + li { border-top: 1px solid var(--line); }
+
+.panel section[aria-live] ol > li::before {
+  content: counter(result);
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbe3d6;
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.panel section[aria-live] dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+
+.panel section[aria-live] > dl {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.panel section[aria-live] dt strong {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.panel section[aria-live] dd {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
 /* Назва кабінету вже є в банері */
 .staff-hero + .eyebrow { display: none; }
 
