@@ -194,3 +194,18 @@ WHERE e.email = 'demo.teacher@example.test'
 ON CONFLICT (employee_id, subject_id) DO NOTHING;
 
 COMMIT;
+
+INSERT INTO settings (
+  institution_name,
+  email,
+  phone,
+  educational_year,
+  timezone
+)
+SELECT
+  'СК Садок',
+  'demo@example.test',
+  '+380000000000',
+  '2026-2027',
+  'Europe/Kyiv'
+WHERE NOT EXISTS (SELECT 1 FROM settings);
