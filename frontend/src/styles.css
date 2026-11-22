@@ -248,3 +248,39 @@ small { display: block; margin-top: 4px; }
   outline: 3px solid #287568;
   outline-offset: 3px;
 }
+/* Етап 6: діти, батьки, зарахування */
+.day-actions input,
+.toolbar input {
+  font: inherit;
+}
+
+.toolbar label { margin-top: 0; }
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #193f40;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover { background: none; color: #ae582e; }
+
+.success {
+  background: #e6f3ea;
+  color: #1f5a37;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+select { font: inherit; }
+
+.back { margin-bottom: 16px; }

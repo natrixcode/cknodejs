@@ -1,3 +1,17 @@
+import { describeError } from './errors.js';
+
+// Перші пояснення валідації, щоб користувач бачив, яке поле виправити.
+function validationDetails(result) {
+  const issues = Array.isArray(result?.errors) ? result.errors : [];
+  const text = issues
+    .slice(0, 3)
+    .map(issue => issue.message)
+    .filter(Boolean)
+    .join('; ');
+
+  return text ? `${result.message}: ${text}` : null;
+}
+
 export async function api(path, options = {}) {
   const { method = 'GET', body, token, signal } = options;
   const headers = { Accept: 'application/json' };
@@ -31,11 +45,18 @@ export async function api(path, options = {}) {
 
   if (!response.ok) {
     let message = result?.message || 'Не вдалося виконати запит.';
+    const explained = describeError(result?.message);
 
     if (response.status === 401) {
       message = token
         ? 'Сесію завершено. Увійди знову.'
         : 'Перевір логін і пароль.';
+    } else if (explained) {
+      message = explained;
+    } else if (response.status === 400 && validationDetails(result)) {
+      message = validationDetails(result);
+    } else if (response.status === 409 && !result?.message?.startsWith('KMS_')) {
+      message = 'Такий запис уже існує: перевір пошту, телефон або назву.';
     } else if (response.status === 403) {
       message = 'Цей обліковий запис не має доступу до цих даних.';
     } else if (response.status >= 500) {
