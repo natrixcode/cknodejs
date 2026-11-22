@@ -248,3 +248,91 @@ small { display: block; margin-top: 4px; }
   outline: 3px solid #287568;
   outline-offset: 3px;
 }
+/* Етап 6: діти, батьки, зарахування */
+.day-actions input,
+.toolbar input {
+  font: inherit;
+}
+
+.toolbar label { margin-top: 0; }
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #193f40;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover { background: none; color: #ae582e; }
+
+.success {
+  background: #e6f3ea;
+  color: #1f5a37;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+select { font: inherit; }
+
+.back { margin-bottom: 16px; }
+
+/* Етапи 7–10: керування структурою, персоналом, доступом і заняттями */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  justify-self: start;
+  font-size: 0.85rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #ece6e1;
+  color: #6b4a36;
+}
+
+.badge.ok {
+  background: #e6f3ea;
+  color: #1f5a37;
+}
+
+.checks {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+label.check input { width: auto; }
+
+.lesson-editor {
+  border-top: 1px solid #e1eae5;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+
+.lesson-editor h3 { margin-bottom: 8px; }

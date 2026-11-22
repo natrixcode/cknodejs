@@ -2,17 +2,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api } from './api.js';
 import { AttendanceActions, ScheduleActions } from './DayActions.jsx';
+import { ListContent, todayInKyiv, useList, useResource } from './shared.jsx';
+import { ChildrenPage } from './admin/ChildrenPage.jsx';
+import { ParentsPage } from './admin/ParentsPage.jsx';
+import { GroupsPage } from './admin/GroupsPage.jsx';
+import { StaffPage } from './admin/StaffPage.jsx';
+import { UsersPage } from './admin/UsersPage.jsx';
+import { LessonEditor } from './admin/LessonEditor.jsx';
 import './styles.css';
 
 const SESSION_KEY = 'cknodejs.manager.session';
 const KYIV = 'Europe/Kyiv';
-
-const dateFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: KYIV,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit'
-});
 
 const timeFormatter = new Intl.DateTimeFormat('uk-UA', {
   timeZone: KYIV,
@@ -20,13 +20,6 @@ const timeFormatter = new Intl.DateTimeFormat('uk-UA', {
   minute: '2-digit',
   hourCycle: 'h23'
 });
-
-function todayInKyiv() {
-  const parts = dateFormatter.formatToParts(new Date());
-  const value = (type) => parts.find((part) => part.type === type).value;
-
-  return `${value('year')}-${value('month')}-${value('day')}`;
-}
 
 function formatTime(timestamp) {
   return timeFormatter.format(new Date(timestamp));
@@ -126,76 +119,6 @@ function Login({ onLogin, notice }) {
       </section>
     </main>
   );
-}
-
-// Кожна секція завантажується окремо. При зміні дати попередній
-// запит скасовується, щоб його відповідь не потрапила в новий табель.
-function useResource(path, token, onExpired, expectList = false) {
-  const [result, setResult] = useState(null);
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    if (!path) return;
-
-    const controller = new AbortController();
-
-    async function load() {
-      try {
-        const data = await api(path, {
-          token,
-          signal: controller.signal
-        });
-
-        if (expectList && !Array.isArray(data)) {
-          throw new Error('API повернув неочікуваний формат списку.');
-        }
-
-        if (!controller.signal.aborted) {
-          setResult({ path, attempt, data });
-        }
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        if (error.status === 401) {
-          onExpired(error.message);
-        } else {
-          setResult({ path, attempt, error: error.message });
-        }
-      }
-    }
-
-    load();
-    return () => controller.abort();
-  }, [path, token, attempt, onExpired, expectList]);
-
-  const current =
-    result?.path === path && result?.attempt === attempt ? result : null;
-
-  return {
-    ...current,
-    retry: () => setAttempt((previous) => previous + 1)
-  };
-}
-
-function useList(path, token, onExpired) {
-  const { data, ...state } = useResource(path, token, onExpired, true);
-  return { ...state, items: data };
-}
-
-function ListContent({ state, empty, children }) {
-  if (state.error) {
-    return (
-      <div role="alert">
-        <p className="alert">{state.error}</p>
-        <button onClick={state.retry}>Спробувати ще раз</button>
-      </div>
-    );
-  }
-
-  if (!state.items) return <p role="status">Завантаження…</p>;
-  if (state.items.length === 0) return <p className="muted">{empty}</p>;
-
-  return children(state.items);
 }
 
 function Groups({ token, onExpired, onSelect, title }) {
@@ -319,6 +242,15 @@ function GroupDay({ group, role, token, onExpired, onBack }) {
                 state={schedule}
                 token={token}
                 onExpired={onExpired}
+            />
+            <LessonEditor
+              key={'lessons:' + group.id + ':' + date}
+              role={role}
+              group={group}
+              date={date}
+              state={schedule}
+              token={token}
+              onExpired={onExpired}
             />
           </section>
 
@@ -853,11 +785,30 @@ function Finance({ role, token, onExpired }) {
   );
 }
 
+// Розділи кабінету; adminOnly — лише для адміністратора.
+const sections = [
+  ['groups', 'День групи'],
+  ['children', 'Діти'],
+  ['parents', 'Батьки'],
+  ['structure', 'Групи й кімнати'],
+  ['staff', 'Персонал'],
+  ['users', 'Користувачі', true],
+  ['finance', 'Фінанси']
+];
+
 function Cabinet({ token, onExpired }) {
   const profile = useResource('/auth/me', token, onExpired);
   const [selected, setSelected] = useState(null);
-  const [finance, setFinance] = useState(false);
+  const [section, setSection] = useState('groups');
   const access = { token, onExpired };
+
+  // Помічнику за матрицею доступу кабінет закритий: /auth/me дає 403.
+  if (profile.status === 403) return (
+    <section className="panel">
+      <h1>Доступ обмежено</h1>
+      <p>Для цього облікового запису (наприклад, помічника) дані дітей і груп закриті. Розклад і табель веде вихователь групи.</p>
+    </section>
+  );
 
   if (profile.error) return (
     <div role="alert">
@@ -876,22 +827,28 @@ function Cabinet({ token, onExpired }) {
     return (
       <>
         <nav aria-label="Розділи кабінету" className="cabinet-nav">
-          <button
-            aria-pressed={!finance}
-            onClick={() => setFinance(false)}
-          >
-            Групи
-          </button>
-
-          <button
-            aria-pressed={finance}
-            onClick={() => setFinance(true)}
-          >
-            Фінанси
-          </button>
+          {sections.filter(([, , adminOnly]) => !adminOnly || user.role === 'admin').map(([id, label]) => (
+            <button
+              key={id}
+              aria-pressed={section === id}
+              onClick={() => setSection(id)}
+            >
+              {label}
+            </button>
+          ))}
         </nav>
 
-        {finance ? (
+        {section === 'children' ? (
+          <ChildrenPage role={user.role} {...access} />
+        ) : section === 'parents' ? (
+          <ParentsPage {...access} />
+        ) : section === 'structure' ? (
+          <GroupsPage role={user.role} {...access} />
+        ) : section === 'staff' ? (
+          <StaffPage role={user.role} {...access} />
+        ) : section === 'users' && user.role === 'admin' ? (
+          <UsersPage {...access} />
+        ) : section === 'finance' ? (
           <Finance role={user.role} {...access} />
         ) : selected ? (
           <GroupDay
